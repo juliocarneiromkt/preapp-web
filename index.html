@@ -21,14 +21,13 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#2563eb">
     
+    <link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22PRE%C3%81pp%20-%20Cat%C3%A1logo%20Local%22%2C%22short_name%22%3A%22PRE%C3%81pp%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%232563eb%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22icone.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
-    <!-- SUPABASE JS LIBRARY -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -64,7 +63,7 @@
         <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
             
             <div class="flex items-center cursor-pointer" onclick="navigate('home')">
-                <img src="logo.png" alt="PREÁpp" class="h-9 w-auto object-contain" onerror="this.src='https://placehold.co/100x40/2563eb/ffffff?text=PREApp'">
+                <img src="logo.png" alt="PREÁpp" class="h-9 w-auto object-contain">
             </div>
             
             <div class="flex items-center gap-4">
@@ -138,10 +137,7 @@
             </div>
             
             <div id="services-list" class="flex flex-col gap-4">
-                <div class="text-center py-10 text-slate-400 flex flex-col items-center gap-2">
-                    <i class="ph ph-spinner animate-spin text-3xl"></i>
-                    <p>Conectando ao banco de dados...</p>
-                </div>
+                <!-- Serviços via JS -->
             </div>
 
             <div class="mt-8 mb-4 bg-blue-50 border border-blue-100 rounded-2xl p-5 flex flex-col items-center text-center shadow-sm">
@@ -437,24 +433,11 @@
     <div id="toast-container" class="fixed bottom-4 left-1/2 -translate-x-1/2 w-max max-w-[90vw] z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <script>
-        // --- 1. CONFIGURAÇÃO OFICIAL DO SUPABASE ---
-        const { createClient } = supabase;
-        const supabaseUrl = 'https://kbldhejhlvxlusyboyc.supabase.co';
-        const supabaseKey = 'sb_publishable_HZkzSkN1PFcP4AyHoYdYvg_SEl9hXSx';
-        
-        // Criando a variável cliente de forma segura
-        const supabaseClient = createClient(supabaseUrl, supabaseKey);
-
-        // --- ESTADOS ---
+        // --- ESTADOS E DADOS LOCAIS (OFFLINE) ---
         let currentView = 'home';
         let activeServiceId = null;
         let bannerInterval = null;
         let pendingServiceData = null;
-
-        let categories = [];
-        let services = [];
-        let reviews = [];
-        let banners = [];
 
         const colorClasses = [
             'bg-blue-100 text-blue-600', 'bg-green-100 text-green-600', 'bg-purple-100 text-purple-600', 
@@ -463,79 +446,64 @@
             'bg-cyan-100 text-cyan-600', 'bg-amber-100 text-amber-700', 'bg-stone-200 text-stone-700'
         ];
 
-        // --- BUSCANDO DADOS DO BANCO REAL ---
-        async function fetchAllData() {
-            try {
-                const [cats, srvs, revs, bans] = await Promise.all([
-                    supabaseClient.from('categories').select('*'),
-                    supabaseClient.from('services').select('*').order('created_at', { ascending: false }),
-                    supabaseClient.from('reviews').select('*').order('created_at', { ascending: false }),
-                    supabaseClient.from('banners').select('*')
-                ]);
+        // Semente inicial caso seja o primeiro acesso
+        const defaultCategories = [
+            { id: 1, name: 'Alimentação', icon: 'ph-hamburger', color: 'bg-orange-100 text-orange-600' },
+            { id: 2, name: 'Mercados', icon: 'ph-shopping-cart', color: 'bg-emerald-100 text-emerald-600' },
+            { id: 3, name: 'Hospedagem', icon: 'ph-bed', color: 'bg-cyan-100 text-cyan-600' },
+            { id: 4, name: 'Kitesurf', icon: 'ph-waves', color: 'bg-blue-100 text-blue-600' },
+            { id: 5, name: 'Saúde', icon: 'ph-first-aid-kit', color: 'bg-rose-100 text-rose-600' },
+            { id: 6, name: 'Manutenção', icon: 'ph-wrench', color: 'bg-amber-100 text-amber-700' },
+            { id: 7, name: 'Comunicação', icon: 'ph-megaphone', color: 'bg-purple-100 text-purple-600' }
+        ];
 
-                if (cats.error || srvs.error) {
-                    console.error("Erro na leitura:", cats.error || srvs.error);
-                    showToast("Erro ao ler banco de dados. Confira a configuração SQL.");
-                    document.getElementById('services-list').innerHTML = '<p class="text-center text-red-500 py-10">Conexão bloqueada pelo servidor.</p>';
-                    return;
-                }
+        const defaultServices = [
+            { id: 1, name: 'Nexus Inteligência de Dados', category: 'Comunicação', whatsapp: '5588920015396', address: 'Cond. Araucárias, Chalé 02', description: 'Especializada em tráfego pago e gestão de dados.', rating: 5.0, reviews_count: 1, tier: 'vip', instagram: 'nexusdados', gallery: ['https://placehold.co/600x400/0f766e/ffffff?text=Nexus+Setup', 'https://placehold.co/600x400/0f766e/ffffff?text=Trafego'] },
+            { id: 2, name: 'Ventos Kite', category: 'Kitesurf', whatsapp: '5588999999999', address: 'Praia do Preá', description: 'Aulas de Kitesurf para iniciantes.', rating: 5.0, reviews_count: 1, tier: 'free', instagram: '', gallery: [] },
+            { id: 3, name: 'Zé Manutenção', category: 'Manutenção', whatsapp: '5588988888888', address: '', description: 'Serviços de eletricista e encanador.', rating: 5.0, reviews_count: 1, tier: 'free', instagram: '', gallery: [] }
+        ];
 
-                categories = cats.data || [];
-                services = srvs.data || [];
-                reviews = revs.data || [];
-                banners = bans.data || [];
+        const defaultBanners = [
+            { id: 1, service_id: 1, image_url: 'https://placehold.co/800x400/1e293b/ffffff?text=NEXUS:+Destaque+Local' },
+            { id: 2, service_id: 2, image_url: 'https://placehold.co/800x400/0284c7/ffffff?text=Ventos+Kite+School' }
+        ];
 
-                // Atualiza Dropdowns
-                document.getElementById('add-category').innerHTML = '<option disabled selected>Selecione...</option>' + categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-                
-                renderHome(); 
-                startBannerRotation();
-            } catch (error) {
-                console.error("Erro fatal de conexão:", error);
-                document.getElementById('services-list').innerHTML = '<p class="text-center text-red-500 py-10">Sem conexão com o servidor.</p>';
+        const defaultReviews = [
+            { id: 1, service_id: 1, name: 'João', rating: 5, text: 'Excelente serviço de tráfego.' },
+            { id: 2, service_id: 2, name: 'Maria', rating: 5, text: 'Melhor aula de kite!' },
+            { id: 3, service_id: 3, name: 'Carlos', rating: 5, text: 'Consertou tudo rápido.' }
+        ];
+
+        let categories = [];
+        let services = [];
+        let reviews = [];
+        let banners = [];
+
+        function loadData() {
+            const savedSrv = localStorage.getItem('preapp_services');
+            if (savedSrv) {
+                services = JSON.parse(savedSrv);
+                categories = JSON.parse(localStorage.getItem('preapp_categories') || JSON.stringify(defaultCategories));
+                banners = JSON.parse(localStorage.getItem('preapp_banners') || '[]');
+                reviews = JSON.parse(localStorage.getItem('preapp_reviews') || '[]');
+            } else {
+                categories = [...defaultCategories];
+                services = [...defaultServices];
+                banners = [...defaultBanners];
+                reviews = [...defaultReviews];
+                saveData();
             }
+            
+            document.getElementById('add-category').innerHTML = '<option disabled selected>Selecione...</option>' + categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            renderHome();
+            startBannerRotation();
         }
 
-        // --- SEMENTE (Para não deixar a tela vazia na primeira vez) ---
-        async function seedDatabaseIfEmpty() {
-            try {
-                const { count, error } = await supabaseClient.from('categories').select('*', { count: 'exact', head: true });
-                if (error) return; // Se houver erro de leitura, aborta a semente para não travar
-                
-                if (count === 0) {
-                    showToast("Semeando banco de dados inicial...");
-                    const defaultCategories = [
-                        { name: 'Alimentação', icon: 'ph-hamburger', color: 'bg-orange-100 text-orange-600' },
-                        { name: 'Mercados', icon: 'ph-shopping-cart', color: 'bg-emerald-100 text-emerald-600' },
-                        { name: 'Hospedagem', icon: 'ph-bed', color: 'bg-cyan-100 text-cyan-600' },
-                        { name: 'Kitesurf', icon: 'ph-waves', color: 'bg-blue-100 text-blue-600' },
-                        { name: 'Saúde', icon: 'ph-first-aid-kit', color: 'bg-rose-100 text-rose-600' },
-                        { name: 'Manutenção', icon: 'ph-wrench', color: 'bg-amber-100 text-amber-700' },
-                        { name: 'Comunicação', icon: 'ph-megaphone', color: 'bg-purple-100 text-purple-600' }
-                    ];
-                    await supabaseClient.from('categories').insert(defaultCategories);
-                    
-                    const { data: srvs } = await supabaseClient.from('services').insert([
-                        { name: 'Nexus Inteligência de Dados', category: 'Comunicação', whatsapp: '5588920015396', address: 'Cond. Araucárias, Chalé 02', description: 'Especializada em tráfego pago e gestão de dados.', rating: 5.0, reviews_count: 1, tier: 'vip', instagram: 'nexusdados', gallery: ['https://placehold.co/600x400/0f766e/ffffff?text=Nexus+Setup', 'https://placehold.co/600x400/0f766e/ffffff?text=Trafego'] },
-                        { name: 'Ventos Kite', category: 'Kitesurf', whatsapp: '5588999999999', address: 'Praia do Preá', description: 'Aulas de Kitesurf para iniciantes.', rating: 5.0, reviews_count: 1, tier: 'free', instagram: '', gallery: [] },
-                        { name: 'Zé Manutenção', category: 'Manutenção', whatsapp: '5588988888888', address: '', description: 'Serviços de eletricista e encanador.', rating: 5.0, reviews_count: 1, tier: 'free', instagram: '', gallery: [] }
-                    ]).select();
-
-                    if(srvs && srvs.length >= 2) {
-                        await supabaseClient.from('banners').insert([
-                            { service_id: srvs[0].id, image_url: 'https://placehold.co/800x400/1e293b/ffffff?text=NEXUS:+Destaque+Local' },
-                            { service_id: srvs[1].id, image_url: 'https://placehold.co/800x400/0284c7/ffffff?text=Ventos+Kite+School' }
-                        ]);
-                        await supabaseClient.from('reviews').insert([
-                            { service_id: srvs[0].id, name: 'João', rating: 5, text: 'Excelente serviço de tráfego.' },
-                            { service_id: srvs[1].id, name: 'Maria', rating: 5, text: 'Melhor aula de kite!' },
-                            { service_id: srvs[2].id, name: 'Carlos', rating: 5, text: 'Consertou tudo rápido.' }
-                        ]);
-                    }
-                }
-            } catch (err) {
-                console.warn("Semente ignorada. Banco pode estar offline ou bloqueado.", err);
-            }
+        function saveData() {
+            localStorage.setItem('preapp_services', JSON.stringify(services));
+            localStorage.setItem('preapp_categories', JSON.stringify(categories));
+            localStorage.setItem('preapp_banners', JSON.stringify(banners));
+            localStorage.setItem('preapp_reviews', JSON.stringify(reviews));
         }
 
         const toBase64 = file => new Promise((resolve, reject) => {
@@ -693,29 +661,28 @@
             `).join('') || `<p class="text-sm text-center py-4 bg-slate-50 text-slate-400 rounded-lg">Seja o primeiro a avaliar!</p>`;
         }
 
-        // --- ENVIANDO PARA O BANCO DE DADOS (SUPABASE) ---
-        async function submitReview(e) {
+        // --- ENVIANDO DADOS (LOCAL) ---
+        function submitReview(e) {
             e.preventDefault();
             const newRev = {
+                id: Date.now(),
                 service_id: activeServiceId,
                 name: document.getElementById('rev-name').value,
                 rating: parseInt(document.getElementById('rev-stars').value),
                 text: document.getElementById('rev-comment').value
             };
             
-            const { data, error } = await supabaseClient.from('reviews').insert([newRev]).select();
-            if(!error && data) {
-                reviews.unshift(data[0]);
-                const s = services.find(x => x.id === activeServiceId);
-                const sr = reviews.filter(r => r.service_id === activeServiceId);
-                s.rating = sr.reduce((a,b)=>a+b.rating,0)/sr.length; 
-                s.reviews_count = sr.length;
-                await supabaseClient.from('services').update({ rating: s.rating, reviews_count: s.reviews_count }).eq('id', s.id);
-                document.getElementById('form-review').reset();
-                document.getElementById('detail-rating').textContent = s.rating.toFixed(1);
-                showToast('Avaliação enviada!'); 
-                renderReviews(activeServiceId);
-            }
+            reviews.unshift(newRev);
+            const s = services.find(x => x.id === activeServiceId);
+            const sr = reviews.filter(r => r.service_id === activeServiceId);
+            s.rating = sr.reduce((a,b)=>a+b.rating,0)/sr.length; 
+            s.reviews_count = sr.length;
+            
+            saveData();
+            document.getElementById('form-review').reset();
+            document.getElementById('detail-rating').textContent = s.rating.toFixed(1);
+            showToast('Avaliação enviada!'); 
+            renderReviews(activeServiceId);
         }
 
         function toggleGalleryUpload() {
@@ -734,6 +701,7 @@
             }
 
             const ns = {
+                id: Date.now(),
                 name: document.getElementById('add-name').value,
                 category: document.getElementById('add-category').value,
                 whatsapp: document.getElementById('add-whatsapp').value.replace(/\D/g, ''),
@@ -750,28 +718,26 @@
                 document.getElementById('checkout-plan-name').textContent = bill === 'anual' ? 'Anual (12x)' : 'Mensal';
                 document.getElementById('checkout-plan-price').textContent = bill === 'anual' ? 'R$ 348,00' : 'R$ 35,00';
                 document.getElementById('modal-payment').classList.replace('hidden', 'flex');
-            } else { await saveNewService(ns); }
+            } else { saveNewService(ns); }
         }
 
         function cancelPaymentSimulation() { document.getElementById('modal-payment').classList.replace('flex', 'hidden'); pendingServiceData = null; showToast("Cancelado."); }
         
-        async function confirmPaymentSimulation() {
+        function confirmPaymentSimulation() {
             if(!pendingServiceData) return;
             document.getElementById('modal-payment').classList.replace('flex', 'hidden');
-            await saveNewService(pendingServiceData); 
+            saveNewService(pendingServiceData); 
             pendingServiceData = null; 
             showToast("Pagamento Aprovado! VIP ativado.");
         }
 
-        async function saveNewService(s) { 
-            const { data, error } = await supabaseClient.from('services').insert([s]).select();
-            if(data) {
-                services.unshift(data[0]); 
-                document.getElementById('form-add').reset(); 
-                toggleGalleryUpload(); 
-                navigate('home');
-                showToast("Cadastrado com sucesso!");
-            }
+        function saveNewService(s) { 
+            services.unshift(s); 
+            saveData();
+            document.getElementById('form-add').reset(); 
+            toggleGalleryUpload(); 
+            navigate('home');
+            showToast("Cadastrado com sucesso!");
         }
 
         // --- ADMIN ---
@@ -787,7 +753,7 @@
             document.getElementById('admin-add-category').innerHTML = '<option value="" disabled selected>Selecione a Categoria...</option>' + categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
             document.getElementById('admin-banner-service').innerHTML = '<option disabled selected>Vincular a qual empresa?</option>' + services.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
             document.getElementById('admin-banner-list').innerHTML = banners.map(b => `<div class="flex justify-between items-center bg-slate-700 p-2 rounded mb-1 text-xs border border-slate-600">ID ${b.service_id} <button onclick="adminDeleteBanner(${b.id})" class="text-red-400">Excluir</button></div>`).join('');
-            document.getElementById('admin-category-list').innerHTML = categories.map(c => `<span class="bg-slate-700 text-xs px-2 py-1 rounded text-slate-200 border border-slate-600">${c.name}</span>`).join('');
+            document.getElementById('admin-category-list').innerHTML = categories.map(c => `<span class="bg-slate-700 text-xs px-2 py-1 rounded text-slate-200 border border-slate-600">${c.name} <button onclick="adminDeleteCategory(${c.id})" class="ml-2 text-red-400 font-bold">x</button></span>`).join('');
             document.getElementById('admin-services-list').innerHTML = services.map(s => `<div class="bg-slate-700 p-3 rounded flex justify-between items-center border border-slate-600 mb-2"><div><div class="font-bold">${s.name} ${s.tier==='vip'?'👑':''}</div><div class="text-xs text-slate-400">${s.category}</div></div><button onclick="adminDeleteService(${s.id})" class="text-red-400 p-1 bg-slate-600 rounded hover:bg-slate-500"><i class="ph-fill ph-trash text-lg"></i></button></div>`).join('');
         }
 
@@ -798,17 +764,13 @@
         }
 
         async function adminSubmitNewService() {
-            document.getElementById('btn-admin-submit').innerText = "Salvando...";
             const name = document.getElementById('admin-add-name').value;
             const category = document.getElementById('admin-add-category').value;
             const whatsapp = document.getElementById('admin-add-whatsapp').value.replace(/\D/g, '');
             const address = document.getElementById('admin-add-address').value;
             const description = document.getElementById('admin-add-desc').value;
             
-            if(!name || !category || !whatsapp || !description) {
-                document.getElementById('btn-admin-submit').innerText = "Publicar Perfil Direto";
-                return showToast("Preencha Nome, Categoria, WhatsApp e Descrição!");
-            }
+            if(!name || !category || !whatsapp || !description) return showToast("Preencha Nome, Categoria, WhatsApp e Descrição!");
 
             const tier = document.querySelector('input[name="adminPlanType"]:checked').value;
             let gal = [];
@@ -817,47 +779,45 @@
                 for(let i=0; i<Math.min(files.length, 5); i++) { gal.push(await toBase64(files[i])); }
             }
 
-            const ns = { name, category, whatsapp, address, description, rating: 0, reviews_count: 0, tier, instagram: tier === 'vip' ? document.getElementById('admin-add-instagram').value.replace('@','') : '', gallery: gal };
-            const { data } = await supabaseClient.from('services').insert([ns]).select();
-            if(data) {
-                services.unshift(data[0]); 
-                document.getElementById('admin-add-name').value = ''; document.getElementById('admin-add-category').value = ''; document.getElementById('admin-add-whatsapp').value = ''; document.getElementById('admin-add-address').value = ''; document.getElementById('admin-add-desc').value = ''; document.getElementById('admin-add-instagram').value = ''; document.getElementById('admin-add-gallery').value = ''; document.querySelector('input[name="adminPlanType"][value="free"]').checked = true;
-                toggleAdminGallery(); renderAdmin(); showToast("Salvo!");
-            }
-            document.getElementById('btn-admin-submit').innerText = "Publicar Perfil Direto";
+            const ns = { id: Date.now(), name, category, whatsapp, address, description, rating: 0, reviews_count: 0, tier, instagram: tier === 'vip' ? document.getElementById('admin-add-instagram').value.replace('@','') : '', gallery: gal };
+            
+            services.unshift(ns);
+            saveData();
+            document.getElementById('admin-add-name').value = ''; document.getElementById('admin-add-category').value = ''; document.getElementById('admin-add-whatsapp').value = ''; document.getElementById('admin-add-address').value = ''; document.getElementById('admin-add-desc').value = ''; document.getElementById('admin-add-instagram').value = ''; document.getElementById('admin-add-gallery').value = ''; document.querySelector('input[name="adminPlanType"][value="free"]').checked = true;
+            toggleAdminGallery(); renderAdmin(); showToast("Salvo!");
         }
 
-        async function adminAddCategory() {
+        function adminAddCategory() {
             const val = document.getElementById('admin-new-category').value.trim();
             if(val) { 
-                const nc = { name: val, icon: 'ph-star', color: colorClasses[categories.length % colorClasses.length] };
-                const { data } = await supabaseClient.from('categories').insert([nc]).select();
-                if(data) { categories.unshift(data[0]); document.getElementById('admin-new-category').value = ''; renderAdmin(); showToast("Categoria salva!"); }
+                const nc = { id: Date.now(), name: val, icon: 'ph-star', color: colorClasses[categories.length % colorClasses.length] };
+                categories.push(nc);
+                saveData();
+                document.getElementById('admin-new-category').value = ''; renderAdmin(); showToast("Categoria salva!");
             }
         }
 
-        async function adminAddBanner() {
+        function adminAddBanner() {
             const service_id = document.getElementById('admin-banner-service').value, image_url = document.getElementById('admin-banner-url').value;
             if(service_id && image_url) { 
-                const { data } = await supabaseClient.from('banners').insert([{ service_id: parseInt(service_id), image_url }]).select();
-                if(data) { banners.push(data[0]); document.getElementById('admin-banner-url').value = ''; renderAdmin(); showToast("Banner salvo!"); }
+                banners.push({ id: Date.now(), service_id: parseInt(service_id), image_url });
+                saveData();
+                document.getElementById('admin-banner-url').value = ''; renderAdmin(); showToast("Banner salvo!");
             }
         }
 
-        async function adminDeleteService(id) { await supabaseClient.from('services').delete().eq('id', id); services = services.filter(x => x.id !== id); renderAdmin(); showToast("Excluído."); }
-        async function adminDeleteBanner(id) { await supabaseClient.from('banners').delete().eq('id', id); banners = banners.filter(x => x.id !== id); renderAdmin(); showToast("Banner excluído."); }
+        function adminDeleteService(id) { services = services.filter(x => x.id !== id); saveData(); renderAdmin(); showToast("Excluído."); }
+        function adminDeleteBanner(id) { banners = banners.filter(x => x.id !== id); saveData(); renderAdmin(); showToast("Banner excluído."); }
+        function adminDeleteCategory(id) { categories = categories.filter(x => x.id !== id); saveData(); renderAdmin(); showToast("Categoria excluída."); }
 
         // --- ARRANQUE DO APLICATIVO ---
-        async function initApp() {
+        window.onload = function() {
             document.getElementById('add-whatsapp').addEventListener('input', function (e) {
                 let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
                 e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
             });
-            await seedDatabaseIfEmpty();
-            await fetchAllData();
-        }
-        
-        window.onload = initApp;
+            loadData();
+        };
 
         // --- IDIOMAS ---
         function googleTranslateElementInit() { new google.translate.TranslateElement({ pageLanguage: 'pt', includedLanguages: 'en,es,pt', autoDisplay: false }, 'google_translate_element'); }
