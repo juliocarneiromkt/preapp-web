@@ -5,19 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PREÁpp - Catálogo Virtual</title>
     
-    <!-- 1. Favicon: Ícone para a aba do navegador -->
     <link rel="icon" type="image/png" href="icone.png">
     
-    <!-- 2. SEO e Cartão de Partilha (WhatsApp, Facebook, etc) usando a Logo -->
     <meta name="description" content="Encontre o que procura no Preá.">
     <meta property="og:title" content="PREÁpp - Catálogo Virtual">
     <meta property="og:description" content="Encontre o que procura no Preá.">
-    <!-- ATENÇÃO: O WhatsApp exige o link completo com https para a imagem funcionar -->
     <meta property="og:image" content="https://preapp-ten.vercel.app/logo.png">
     <meta property="og:url" content="https://preapp-ten.vercel.app/">
     <meta property="og:type" content="website">
     
-    <!-- 3. PWA: Miniatura do App no celular (Apple e Android) usando o ICONE -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="blue">
     <meta name="apple-mobile-web-app-title" content="PREÁpp">
@@ -25,7 +21,6 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#2563eb">
     
-    <!-- Manifest Embutido atualizado com o ICONE -->
     <link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22PRE%C3%81pp%20-%20Cat%C3%A1logo%20Local%22%2C%22short_name%22%3A%22PRE%C3%81pp%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%232563eb%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22icone.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
     
     <!-- Tailwind CSS -->
@@ -33,6 +28,9 @@
     
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- SUPABASE JS LIBRARY -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -67,13 +65,11 @@
     <header class="bg-white text-blue-800 sticky top-0 z-40 shadow-sm border-b border-slate-100">
         <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
             
-            <!-- 4. Logo na abertura do site no lugar do texto -->
             <div class="flex items-center cursor-pointer" onclick="navigate('home')">
                 <img src="logo.png" alt="PREÁpp" class="h-9 w-auto object-contain">
             </div>
             
             <div class="flex items-center gap-4">
-                <!-- Seletor de Idiomas Personalizado (Bandeiras) -->
                 <div class="flex gap-2.5 text-xl bg-slate-100 px-2.5 py-1 rounded-lg items-center shadow-inner">
                     <button onclick="changeLanguage('pt')" class="hover:scale-125 transition-transform origin-center drop-shadow-sm" title="Português">🇧🇷</button>
                     <span class="text-slate-300 text-[10px]">|</span>
@@ -100,7 +96,6 @@
         <!-- VIEW: HOME -->
         <div id="view-home" class="p-4 animate-fade-in block">
             
-            <!-- Banner de Instalação (PWA) -->
             <div id="install-banner" class="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-5 flex justify-between items-center cursor-pointer shadow-sm" onclick="showInstallModal()">
                 <div class="flex items-center gap-3">
                     <div class="bg-blue-100 text-blue-600 p-2.5 rounded-lg shadow-inner"><i class="ph-fill ph-download-simple text-xl"></i></div>
@@ -112,7 +107,6 @@
                 <i class="ph-bold ph-caret-right text-blue-500"></i>
             </div>
 
-            <!-- Busca e Compartilhar App -->
             <div class="flex gap-2 mb-6">
                 <div class="relative flex-1">
                     <input type="text" id="search-input" placeholder="Buscar serviços, palavras..." class="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
@@ -123,9 +117,7 @@
                 </button>
             </div>
 
-            <!-- Container Dinâmico da Home -->
             <div id="home-default-content">
-                <!-- Vitrine de Banners -->
                 <div class="mb-6">
                     <div class="flex justify-between items-center mb-2">
                         <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Destaques</h2>
@@ -136,14 +128,12 @@
                     </div>
                 </div>
 
-                <!-- Categorias Grid (16 opções) -->
                 <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Categorias</h2>
                 <div id="categories-grid" class="grid grid-cols-4 gap-3 mb-8">
                     <!-- Categorias via JS -->
                 </div>
             </div>
 
-            <!-- Feed -->
             <div class="flex justify-between items-baseline mb-4">
                 <h2 id="feed-title" class="text-lg font-bold text-slate-800">Profissionais Locais</h2>
                 <span id="feed-subtitle" class="text-sm text-blue-600 font-medium"></span>
@@ -153,7 +143,6 @@
                 <!-- Cards via JS -->
             </div>
 
-            <!-- Banner Fale com a Equipe -->
             <div class="mt-8 mb-4 bg-blue-50 border border-blue-100 rounded-2xl p-5 flex flex-col items-center text-center shadow-sm">
                 <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-3 shadow-inner">
                     <i class="ph-fill ph-headset text-2xl"></i>
@@ -337,7 +326,6 @@
                     <button onclick="navigate('home')" class="text-slate-400"><i class="ph ph-sign-out text-2xl"></i></button>
                 </div>
 
-                <!-- Novo Cadastro Cortesia Admin -->
                 <div class="bg-slate-800 rounded-xl p-4 mb-6">
                     <h3 class="font-bold text-white mb-4"><i class="ph-fill ph-storefront"></i> Cadastrar Empresa (Cortesia)</h3>
                     <div class="flex flex-col gap-3 text-sm">
@@ -361,7 +349,7 @@
                             </div>
                         </div>
 
-                        <button onclick="adminSubmitNewService()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg mt-2 shadow-lg transition">Publicar Perfil Direto</button>
+                        <button onclick="adminSubmitNewService()" id="btn-admin-submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg mt-2 shadow-lg transition">Publicar Perfil Direto</button>
                     </div>
                 </div>
 
@@ -393,7 +381,7 @@
 
     </main>
 
-        <!-- MODAL DE INSTALAÇÃO (PWA) -->
+    <!-- MODAIS E TOASTS -->
     <div id="modal-install" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex-col justify-end">
         <div class="bg-white rounded-t-3xl p-6 shadow-2xl animate-slide-up max-w-md mx-auto w-full">
             <div class="flex justify-between items-start mb-4">
@@ -425,7 +413,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE PAGAMENTO VIP -->
     <div id="modal-payment" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex-col justify-end">
         <div class="bg-white rounded-t-3xl p-6 shadow-2xl animate-slide-up max-w-md mx-auto w-full">
             <div class="text-center mb-6">
@@ -449,11 +436,22 @@
     <div id="toast-container" class="fixed bottom-4 left-1/2 -translate-x-1/2 w-max max-w-[90vw] z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <script>
-        // --- DADOS E ESTADO ---
+        // --- 1. CONFIGURAÇÃO OFICIAL DO SUPABASE ---
+        const { createClient } = supabase;
+        const supabaseUrl = 'https://kbldhejhlvxlusyboyc.supabase.co';
+        const supabaseKey = 'sb_publishable_HZkzSkN1PFcP4AyHoYdYvg_SEl9hXSx';
+        const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+        // --- ESTADOS ---
         let currentView = 'home';
         let activeServiceId = null;
         let bannerInterval = null;
         let pendingServiceData = null;
+
+        let categories = [];
+        let services = [];
+        let reviews = [];
+        let banners = [];
 
         const colorClasses = [
             'bg-blue-100 text-blue-600', 'bg-green-100 text-green-600', 'bg-purple-100 text-purple-600', 
@@ -461,51 +459,74 @@
             'bg-indigo-100 text-indigo-600', 'bg-rose-100 text-rose-600', 'bg-emerald-100 text-emerald-600', 
             'bg-cyan-100 text-cyan-600', 'bg-amber-100 text-amber-700', 'bg-stone-200 text-stone-700'
         ];
-        
-        const defaultCategories = [
-            { name: 'Alimentação', icon: 'ph-hamburger', color: 'bg-orange-100 text-orange-600' },
-            { name: 'Mercados', icon: 'ph-shopping-cart', color: 'bg-emerald-100 text-emerald-600' },
-            { name: 'Hospedagem', icon: 'ph-bed', color: 'bg-cyan-100 text-cyan-600' },
-            { name: 'Kitesurf', icon: 'ph-waves', color: 'bg-blue-100 text-blue-600' },
-            { name: 'Saúde', icon: 'ph-first-aid-kit', color: 'bg-rose-100 text-rose-600' },
-            { name: 'Beleza', icon: 'ph-scissors', color: 'bg-pink-100 text-pink-600' },
-            { name: 'Transporte', icon: 'ph-car-profile', color: 'bg-slate-200 text-slate-700' },
-            { name: 'Pets', icon: 'ph-paw-print', color: 'bg-amber-200 text-amber-800' },
-            { name: 'Construção', icon: 'ph-wall', color: 'bg-stone-200 text-stone-700' },
-            { name: 'Manutenção', icon: 'ph-wrench', color: 'bg-amber-100 text-amber-700' },
-            { name: 'Tecnologia', icon: 'ph-device-mobile', color: 'bg-indigo-100 text-indigo-600' },
-            { name: 'Moda', icon: 'ph-t-shirt', color: 'bg-fuchsia-100 text-fuchsia-600' },
-            { name: 'Educação', icon: 'ph-book-open', color: 'bg-yellow-100 text-yellow-700' },
-            { name: 'Eventos', icon: 'ph-confetti', color: 'bg-red-100 text-red-600' },
-            { name: 'Comunicação', icon: 'ph-megaphone', color: 'bg-purple-100 text-purple-600' },
-            { name: 'Outros', icon: 'ph-dots-three', color: 'bg-slate-100 text-slate-500' }
-        ];
 
-        const defaultServices = [
-            { id: 1, name: 'Nexus Inteligência de Dados', category: 'Comunicação', whatsapp: '5588920015396', address: 'Cond. Araucárias, Chalé 02', desc: 'Especializada em tráfego pago e gestão de dados.', rating: 5.0, reviewsCount: 1, tier: 'vip', instagram: 'nexusdados', gallery: ['https://placehold.co/600x400/0f766e/ffffff?text=Nexus+Setup', 'https://placehold.co/600x400/0f766e/ffffff?text=Trafego'] },
-            { id: 2, name: 'Ventos Kite', category: 'Kitesurf', whatsapp: '5588999999999', address: 'Praia do Preá', desc: 'Aulas de Kitesurf para iniciantes.', rating: 5.0, reviewsCount: 2, tier: 'free', gallery: [], instagram: '' },
-            { id: 3, name: 'Zé Manutenção', category: 'Manutenção', whatsapp: '5588988888888', address: '', desc: 'Serviços de eletricista e encanador.', rating: 4.5, reviewsCount: 4, tier: 'free', gallery: [], instagram: '' }
-        ];
+        // --- BUSCANDO DADOS DO BANCO REAL ---
+        async function fetchAllData() {
+            try {
+                const [cats, srvs, revs, bans] = await Promise.all([
+                    supabaseClient.from('categories').select('*'),
+                    supabaseClient.from('services').select('*').order('created_at', { ascending: false }),
+                    supabaseClient.from('reviews').select('*').order('created_at', { ascending: false }),
+                    supabaseClient.from('banners').select('*')
+                ]);
 
-        const defaultReviews = [{ serviceId: 1, name: 'João', rating: 5, text: 'Ótimo serviço!', date: '08 Jun' }];
-        const defaultBanners = [
-            { id: 1, serviceId: 1, imageUrl: 'https://placehold.co/800x400/1e293b/ffffff?text=NEXUS:+Destaque+Local' },
-            { id: 2, serviceId: 2, imageUrl: 'https://placehold.co/800x400/0284c7/ffffff?text=Ventos+Kite+School' }
-        ];
+                categories = cats.data || [];
+                services = srvs.data || [];
+                reviews = revs.data || [];
+                banners = bans.data || [];
 
-        // Carrega do LocalStorage (Memória do navegador) ou usa os dados padrão
-        let categories = JSON.parse(localStorage.getItem('preapp_cats')) || defaultCategories;
-        let services = JSON.parse(localStorage.getItem('preapp_srvs')) || defaultServices;
-        let reviews = JSON.parse(localStorage.getItem('preapp_revs')) || defaultReviews;
-        let banners = JSON.parse(localStorage.getItem('preapp_bans')) || defaultBanners;
-
-        // Função mágica para salvar na memória
-        function saveToStorage() {
-            localStorage.setItem('preapp_cats', JSON.stringify(categories));
-            localStorage.setItem('preapp_srvs', JSON.stringify(services));
-            localStorage.setItem('preapp_revs', JSON.stringify(reviews));
-            localStorage.setItem('preapp_bans', JSON.stringify(banners));
+                // Atualiza Dropdowns
+                document.getElementById('add-category').innerHTML = '<option disabled selected>Selecione...</option>' + categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+                
+                renderHome(); 
+                startBannerRotation();
+            } catch (error) {
+                console.error("Erro ao puxar dados do Supabase:", error);
+            }
         }
+
+        // --- SEMENTE (Para não deixar a tela vazia na primeira vez) ---
+        async function seedDatabaseIfEmpty() {
+            const { count } = await supabaseClient.from('categories').select('*', { count: 'exact', head: true });
+            if (count === 0) {
+                const defaultCategories = [
+                    { name: 'Alimentação', icon: 'ph-hamburger', color: 'bg-orange-100 text-orange-600' },
+                    { name: 'Mercados', icon: 'ph-shopping-cart', color: 'bg-emerald-100 text-emerald-600' },
+                    { name: 'Hospedagem', icon: 'ph-bed', color: 'bg-cyan-100 text-cyan-600' },
+                    { name: 'Kitesurf', icon: 'ph-waves', color: 'bg-blue-100 text-blue-600' },
+                    { name: 'Saúde', icon: 'ph-first-aid-kit', color: 'bg-rose-100 text-rose-600' },
+                    { name: 'Manutenção', icon: 'ph-wrench', color: 'bg-amber-100 text-amber-700' },
+                    { name: 'Comunicação', icon: 'ph-megaphone', color: 'bg-purple-100 text-purple-600' }
+                ];
+                await supabaseClient.from('categories').insert(defaultCategories);
+                
+                const { data: srvs } = await supabaseClient.from('services').insert([
+                    { name: 'Nexus Inteligência de Dados', category: 'Comunicação', whatsapp: '5588920015396', address: 'Cond. Araucárias, Chalé 02', description: 'Especializada em tráfego pago e gestão de dados.', rating: 5.0, reviews_count: 1, tier: 'vip', instagram: 'nexusdados', gallery: ['https://placehold.co/600x400/0f766e/ffffff?text=Nexus+Setup', 'https://placehold.co/600x400/0f766e/ffffff?text=Trafego'] },
+                    { name: 'Ventos Kite', category: 'Kitesurf', whatsapp: '5588999999999', address: 'Praia do Preá', description: 'Aulas de Kitesurf para iniciantes.', rating: 5.0, reviews_count: 1, tier: 'free', instagram: '', gallery: [] },
+                    { name: 'Zé Manutenção', category: 'Manutenção', whatsapp: '5588988888888', address: '', description: 'Serviços de eletricista e encanador.', rating: 5.0, reviews_count: 1, tier: 'free', instagram: '', gallery: [] }
+                ]).select();
+
+                if(srvs && srvs.length >= 2) {
+                    await supabaseClient.from('banners').insert([
+                        { service_id: srvs[0].id, image_url: 'https://placehold.co/800x400/1e293b/ffffff?text=NEXUS:+Destaque+Local' },
+                        { service_id: srvs[1].id, image_url: 'https://placehold.co/800x400/0284c7/ffffff?text=Ventos+Kite+School' }
+                    ]);
+                    await supabaseClient.from('reviews').insert([
+                        { service_id: srvs[0].id, name: 'João', rating: 5, text: 'Excelente serviço de tráfego.' },
+                        { service_id: srvs[1].id, name: 'Maria', rating: 5, text: 'Melhor aula de kite!' },
+                        { service_id: srvs[2].id, name: 'Carlos', rating: 5, text: 'Consertou tudo rápido.' }
+                    ]);
+                }
+            }
+        }
+
+        // Conversor de Imagem para Base64 (Para salvar no banco de dados)
+        const toBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
 
         // --- FUNÇÕES UI / NAVEGAÇÃO ---
         function showToast(msg) {
@@ -526,32 +547,15 @@
             if(viewId === 'home') { renderHome(); startBannerRotation(); } else { stopBannerRotation(); }
         }
 
-        // --- PWA INSTALL MODAL ---
-        function showInstallModal() {
-            document.getElementById('modal-install').classList.remove('hidden');
-            document.getElementById('modal-install').classList.add('flex');
-        }
-        function hideInstallModal() {
-            document.getElementById('modal-install').classList.add('hidden');
-            document.getElementById('modal-install').classList.remove('flex');
-        }
+        function showInstallModal() { document.getElementById('modal-install').classList.replace('hidden', 'flex'); }
+        function hideInstallModal() { document.getElementById('modal-install').classList.replace('flex', 'hidden'); }
 
-        // --- COMPARTILHAMENTO GLOBAL DO APP ---
         function shareApp() {
-            const shareData = {
-                title: 'PREÁpp - O Catálogo do Preá',
-                text: 'Descubra os melhores profissionais, serviços e negócios do Preá na palma da sua mão!',
-                url: 'https://preapp-ten.vercel.app/'
-            };
-            if (navigator.share) {
-                navigator.share(shareData).catch(console.error);
-            } else {
-                navigator.clipboard.writeText(`${shareData.text} Acesse: ${shareData.url}`); 
-                showToast("Link do aplicativo copiado!");
-            }
+            const shareData = { title: 'PREÁpp - O Catálogo do Preá', text: 'Descubra os melhores profissionais e serviços do Preá!', url: 'https://preapp-ten.vercel.app/' };
+            if (navigator.share) { navigator.share(shareData).catch(console.error); } 
+            else { navigator.clipboard.writeText(`${shareData.text} Acesse: ${shareData.url}`); showToast("Link do aplicativo copiado!"); }
         }
 
-        // --- HOME / BUSCA ---
         function removeAccents(str) { return str.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
 
         function renderHome(searchQuery = '', filterCat = null) {
@@ -565,8 +569,8 @@
 
             const banContainer = document.getElementById('banners-container');
             banContainer.innerHTML = banners.map(b => `
-                <div class="min-w-[85%] sm:min-w-[70%] h-32 md:h-40 rounded-2xl bg-slate-200 flex-shrink-0 overflow-hidden relative cursor-pointer" onclick="openService(${b.serviceId})">
-                    <img src="${b.imageUrl}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/800x400/e2e8f0/64748b?text=Banner'">
+                <div class="min-w-[85%] sm:min-w-[70%] h-32 md:h-40 rounded-2xl bg-slate-200 flex-shrink-0 overflow-hidden relative cursor-pointer" onclick="openService(${b.service_id})">
+                    <img src="${b.image_url}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/800x400/e2e8f0/64748b?text=Banner'">
                 </div>
             `).join('');
 
@@ -580,7 +584,7 @@
                 defContent.style.display = 'block';
             } else if(searchQuery) {
                 const terms = removeAccents(searchQuery.toLowerCase()).split(' ').filter(t=>t);
-                filtered = services.filter(s => terms.every(t => removeAccents(`${s.name} ${s.category} ${s.desc}`).toLowerCase().includes(t)));
+                filtered = services.filter(s => terms.every(t => removeAccents(`${s.name} ${s.category} ${s.description}`).toLowerCase().includes(t)));
                 document.getElementById('feed-title').textContent = "Busca";
                 defContent.style.display = 'none';
             } else {
@@ -593,7 +597,7 @@
 
             const list = document.getElementById('services-list');
             list.innerHTML = filtered.map(s => {
-                const c = categories.find(cat => cat.name === s.category) || categories[categories.length-1];
+                const c = categories.find(cat => cat.name === s.category) || categories[categories.length-1] || {color: 'bg-slate-100 text-slate-500'};
                 return `
                 <div onclick="openService(${s.id})" class="bg-white rounded-2xl p-4 shadow-sm border ${s.tier==='vip'?'border-amber-200':'border-slate-100'} relative cursor-pointer">
                     ${s.tier==='vip' ? `<div class="absolute -top-3 -right-2 bg-amber-400 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white"><i class="ph-fill ph-crown"></i></div>`:''}
@@ -602,7 +606,7 @@
                         <div class="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg"><i class="ph-fill ph-star text-amber-500 text-sm"></i><span class="font-bold text-sm">${s.rating.toFixed(1)}</span></div>
                     </div>
                     <h3 class="font-bold text-lg leading-tight mb-1">${s.name}</h3>
-                    <p class="text-sm text-slate-500 line-clamp-2 leading-snug">${s.desc}</p>
+                    <p class="text-sm text-slate-500 line-clamp-2 leading-snug">${s.description}</p>
                 </div>`;
             }).join('') || `<div class="text-center py-10 text-slate-400">Nenhum resultado.</div>`;
         }
@@ -621,14 +625,13 @@
         }
         function stopBannerRotation() { clearInterval(bannerInterval); }
 
-        // --- PERFIL ---
         function openService(id) {
             const s = services.find(x => x.id === id);
             if(!s) return;
             activeServiceId = id;
             
             const cover = document.getElementById('profile-gallery-container');
-            if(s.tier === 'vip' && s.gallery.length > 0) {
+            if(s.tier === 'vip' && s.gallery && s.gallery.length > 0) {
                 cover.innerHTML = `<div class="flex h-full w-full overflow-x-auto gallery-snap no-scrollbar">${s.gallery.map(url => `<div class="w-full h-full flex-shrink-0 relative"><img src="${url}" class="w-full h-full object-cover"></div>`).join('')}</div>`;
             } else {
                 const c = categories.find(cat => cat.name === s.category) || categories[categories.length-1];
@@ -638,7 +641,7 @@
             document.getElementById('detail-name').innerHTML = s.name + (s.tier==='vip'?' <i class="ph-fill ph-crown text-amber-500 text-xl"></i>':'');
             document.getElementById('detail-category').textContent = s.category;
             document.getElementById('detail-rating').textContent = s.rating.toFixed(1);
-            document.getElementById('detail-desc').textContent = s.desc;
+            document.getElementById('detail-desc').textContent = s.description;
             
             document.getElementById('detail-address-container').style.display = s.address ? 'flex' : 'none';
             document.getElementById('detail-address').textContent = s.address || '';
@@ -665,7 +668,7 @@
 
         function renderReviews(id) {
             const list = document.getElementById('reviews-list');
-            const revs = reviews.filter(r => r.serviceId === id);
+            const revs = reviews.filter(r => r.service_id === id);
             list.innerHTML = revs.map(r => `
                 <div class="bg-white border border-slate-100 p-4 rounded-xl shadow-sm">
                     <div class="flex justify-between items-center mb-2"><span class="font-bold text-sm">${r.name}</span><span class="text-amber-500 text-xs">${'⭐'.repeat(r.rating)}</span></div>
@@ -674,44 +677,63 @@
             `).join('') || `<p class="text-sm text-center py-4 bg-slate-50 text-slate-400 rounded-lg">Seja o primeiro a avaliar!</p>`;
         }
 
-        function submitReview(e) {
+        // --- ENVIANDO PARA O BANCO DE DADOS (SUPABASE) ---
+        async function submitReview(e) {
             e.preventDefault();
-            reviews.unshift({ serviceId: activeServiceId, name: document.getElementById('rev-name').value, rating: parseInt(document.getElementById('rev-stars').value), text: document.getElementById('rev-comment').value, date: 'Hoje' });
+            const newRev = {
+                service_id: activeServiceId,
+                name: document.getElementById('rev-name').value,
+                rating: parseInt(document.getElementById('rev-stars').value),
+                text: document.getElementById('rev-comment').value
+            };
             
-            const s = services.find(x => x.id === activeServiceId);
-            const sr = reviews.filter(r => r.serviceId === activeServiceId);
-            s.rating = sr.reduce((a,b)=>a+b.rating,0)/sr.length; s.reviewsCount = sr.length;
-            
-            document.getElementById('form-review').reset();
-            document.getElementById('detail-rating').textContent = s.rating.toFixed(1);
-            saveToStorage(); // Salva a avaliação nova
-            showToast('Avaliação enviada!'); renderReviews(activeServiceId);
+            // Salva no banco de dados
+            const { data, error } = await supabaseClient.from('reviews').insert([newRev]).select();
+            if(!error && data) {
+                reviews.unshift(data[0]);
+                
+                // Recalcula as estrelas
+                const s = services.find(x => x.id === activeServiceId);
+                const sr = reviews.filter(r => r.service_id === activeServiceId);
+                s.rating = sr.reduce((a,b)=>a+b.rating,0)/sr.length; 
+                s.reviews_count = sr.length;
+                
+                // Atualiza as estrelas no banco de dados
+                await supabaseClient.from('services').update({ rating: s.rating, reviews_count: s.reviews_count }).eq('id', s.id);
+                
+                document.getElementById('form-review').reset();
+                document.getElementById('detail-rating').textContent = s.rating.toFixed(1);
+                showToast('Avaliação enviada com sucesso!'); 
+                renderReviews(activeServiceId);
+            }
         }
 
-        // --- ADD / VIP ---
         function toggleGalleryUpload() {
             const isVip = document.querySelector('input[name="planType"][value="vip"]').checked;
             const s = document.getElementById('upload-gallery-section');
             isVip ? (s.classList.remove('hidden'), s.classList.add('flex')) : (s.classList.add('hidden'), s.classList.remove('flex'));
         }
 
-        function submitNewService(e) {
+        async function submitNewService(e) {
             e.preventDefault();
             const tier = document.querySelector('input[name="planType"]:checked').value;
             let gal = [];
+            
+            // Converte fotos para salvar no banco
             if(tier === 'vip') {
                 const files = document.getElementById('add-gallery-files').files;
-                for(let i=0; i<Math.min(files.length, 5); i++) gal.push(URL.createObjectURL(files[i]));
+                for(let i=0; i<Math.min(files.length, 5); i++) {
+                    gal.push(await toBase64(files[i]));
+                }
             }
 
             const ns = {
-                id: services.length + 1,
                 name: document.getElementById('add-name').value,
                 category: document.getElementById('add-category').value,
                 whatsapp: document.getElementById('add-whatsapp').value.replace(/\D/g, ''),
                 address: document.getElementById('add-address').value,
-                desc: document.getElementById('add-desc').value,
-                rating: 0, reviewsCount: 0, tier,
+                description: document.getElementById('add-desc').value,
+                rating: 0, reviews_count: 0, tier,
                 instagram: tier === 'vip' ? document.getElementById('add-instagram').value.replace('@','') : '',
                 gallery: gal
             };
@@ -722,18 +744,31 @@
                 document.getElementById('checkout-plan-name').textContent = bill === 'anual' ? 'Anual (12x)' : 'Mensal';
                 document.getElementById('checkout-plan-price').textContent = bill === 'anual' ? 'R$ 348,00' : 'R$ 35,00';
                 document.getElementById('modal-payment').classList.replace('hidden', 'flex');
-            } else { saveNewService(ns); }
+            } else { await saveNewService(ns); }
         }
 
         function cancelPaymentSimulation() { document.getElementById('modal-payment').classList.replace('flex', 'hidden'); pendingServiceData = null; showToast("Cancelado."); }
-        function confirmPaymentSimulation() {
+        
+        async function confirmPaymentSimulation() {
             if(!pendingServiceData) return;
             document.getElementById('modal-payment').classList.replace('flex', 'hidden');
-            saveNewService(pendingServiceData); pendingServiceData = null; showToast("Pagamento Aprovado! VIP ativado.");
+            await saveNewService(pendingServiceData); 
+            pendingServiceData = null; 
+            showToast("Pagamento Aprovado! VIP ativado no Servidor.");
         }
-        function saveNewService(s) { services.push(s); saveToStorage(); document.getElementById('form-add').reset(); toggleGalleryUpload(); navigate('home'); }
 
-        // --- ADMIN ---
+        async function saveNewService(s) { 
+            const { data, error } = await supabaseClient.from('services').insert([s]).select();
+            if(data) {
+                services.unshift(data[0]); 
+                document.getElementById('form-add').reset(); 
+                toggleGalleryUpload(); 
+                navigate('home');
+                showToast("Cadastrado com sucesso!");
+            }
+        }
+
+        // --- ADMIN LIGADO AO BANCO ---
         function loginAdmin() {
             if(document.getElementById('admin-pwd').value === '#Bb0991%2704@') {
                 document.getElementById('admin-login').classList.add('hidden');
@@ -745,9 +780,9 @@
         function renderAdmin() {
             document.getElementById('admin-add-category').innerHTML = '<option value="" disabled selected>Selecione a Categoria...</option>' + categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
             document.getElementById('admin-banner-service').innerHTML = '<option disabled selected>Vincular a qual empresa?</option>' + services.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-            document.getElementById('admin-banner-list').innerHTML = banners.map(b => `<div class="flex justify-between items-center bg-slate-700 p-2 rounded mb-1 text-xs border border-slate-600">ID ${b.serviceId} <button onclick="banners=banners.filter(x=>x.id!==${b.id});saveToStorage();renderAdmin();" class="text-red-400">Excluir</button></div>`).join('');
+            document.getElementById('admin-banner-list').innerHTML = banners.map(b => `<div class="flex justify-between items-center bg-slate-700 p-2 rounded mb-1 text-xs border border-slate-600">ID ${b.service_id} <button onclick="adminDeleteBanner(${b.id})" class="text-red-400">Excluir</button></div>`).join('');
             document.getElementById('admin-category-list').innerHTML = categories.map(c => `<span class="bg-slate-700 text-xs px-2 py-1 rounded text-slate-200 border border-slate-600">${c.name}</span>`).join('');
-            document.getElementById('admin-services-list').innerHTML = services.map(s => `<div class="bg-slate-700 p-3 rounded flex justify-between items-center border border-slate-600 mb-2"><div><div class="font-bold">${s.name} ${s.tier==='vip'?'👑':''}</div><div class="text-xs text-slate-400">${s.category}</div></div><button onclick="services=services.filter(x=>x.id!==${s.id});saveToStorage();renderAdmin();" class="text-red-400 p-1 bg-slate-600 rounded hover:bg-slate-500"><i class="ph-fill ph-trash text-lg"></i></button></div>`).join('');
+            document.getElementById('admin-services-list').innerHTML = services.map(s => `<div class="bg-slate-700 p-3 rounded flex justify-between items-center border border-slate-600 mb-2"><div><div class="font-bold">${s.name} ${s.tier==='vip'?'👑':''}</div><div class="text-xs text-slate-400">${s.category}</div></div><button onclick="adminDeleteService(${s.id})" class="text-red-400 p-1 bg-slate-600 rounded hover:bg-slate-500"><i class="ph-fill ph-trash text-lg"></i></button></div>`).join('');
         }
 
         function toggleAdminGallery() {
@@ -756,81 +791,110 @@
             isVip ? (s.classList.remove('hidden'), s.classList.add('flex')) : (s.classList.add('hidden'), s.classList.remove('flex'));
         }
 
-        function adminSubmitNewService() {
+        async function adminSubmitNewService() {
+            document.getElementById('btn-admin-submit').innerText = "Salvando na Nuvem...";
+            
             const name = document.getElementById('admin-add-name').value;
             const category = document.getElementById('admin-add-category').value;
             const whatsapp = document.getElementById('admin-add-whatsapp').value.replace(/\D/g, '');
             const address = document.getElementById('admin-add-address').value;
-            const desc = document.getElementById('admin-add-desc').value;
+            const description = document.getElementById('admin-add-desc').value;
             
-            if(!name || !category || !whatsapp || !desc) return showToast("Preencha Nome, Categoria, WhatsApp e Descrição!");
+            if(!name || !category || !whatsapp || !description) {
+                document.getElementById('btn-admin-submit').innerText = "Publicar Perfil Direto";
+                return showToast("Preencha Nome, Categoria, WhatsApp e Descrição!");
+            }
 
             const tier = document.querySelector('input[name="adminPlanType"]:checked').value;
             let gal = [];
             if(tier === 'vip') {
                 const files = document.getElementById('admin-add-gallery').files;
-                for(let i=0; i<Math.min(files.length, 5); i++) gal.push(URL.createObjectURL(files[i]));
+                for(let i=0; i<Math.min(files.length, 5); i++) { gal.push(await toBase64(files[i])); }
             }
 
             const ns = {
-                id: Date.now(),
-                name, category, whatsapp, address, desc,
-                rating: 0, reviewsCount: 0, tier,
+                name, category, whatsapp, address, description,
+                rating: 0, reviews_count: 0, tier,
                 instagram: tier === 'vip' ? document.getElementById('admin-add-instagram').value.replace('@','') : '',
                 gallery: gal
             };
 
-            services.unshift(ns); // Insere no topo da lista
-            saveToStorage();
+            const { data } = await supabaseClient.from('services').insert([ns]).select();
             
-            // Limpa o formulário admin
-            document.getElementById('admin-add-name').value = '';
-            document.getElementById('admin-add-category').value = '';
-            document.getElementById('admin-add-whatsapp').value = '';
-            document.getElementById('admin-add-address').value = '';
-            document.getElementById('admin-add-desc').value = '';
-            document.getElementById('admin-add-instagram').value = '';
-            document.getElementById('admin-add-gallery').value = '';
-            document.querySelector('input[name="adminPlanType"][value="free"]').checked = true;
-            toggleAdminGallery();
-            
-            renderAdmin(); 
-            showToast("Cadastro Cortesia realizado com sucesso!");
+            if(data) {
+                services.unshift(data[0]); 
+                document.getElementById('admin-add-name').value = '';
+                document.getElementById('admin-add-category').value = '';
+                document.getElementById('admin-add-whatsapp').value = '';
+                document.getElementById('admin-add-address').value = '';
+                document.getElementById('admin-add-desc').value = '';
+                document.getElementById('admin-add-instagram').value = '';
+                document.getElementById('admin-add-gallery').value = '';
+                document.querySelector('input[name="adminPlanType"][value="free"]').checked = true;
+                toggleAdminGallery();
+                renderAdmin(); 
+                showToast("Cortesia salva no Servidor Oficial!");
+            }
+            document.getElementById('btn-admin-submit').innerText = "Publicar Perfil Direto";
         }
 
-        function adminAddCategory() {
+        async function adminAddCategory() {
             const val = document.getElementById('admin-new-category').value.trim();
-            if(val) { categories.unshift({ name: val, icon: 'ph-star', color: colorClasses[categories.length % colorClasses.length] }); document.getElementById('admin-new-category').value = ''; saveToStorage(); initApp(); renderAdmin(); showToast("Categoria criada"); }
-        }
-        function adminAddBanner() {
-            const sId = document.getElementById('admin-banner-service').value, url = document.getElementById('admin-banner-url').value;
-            if(sId && url) { banners.push({id: Date.now(), serviceId: parseInt(sId), imageUrl: url}); document.getElementById('admin-banner-url').value = ''; saveToStorage(); renderAdmin(); showToast("Banner criado"); }
+            if(val) { 
+                const nc = { name: val, icon: 'ph-star', color: colorClasses[categories.length % colorClasses.length] };
+                const { data } = await supabaseClient.from('categories').insert([nc]).select();
+                if(data) {
+                    categories.unshift(data[0]); 
+                    document.getElementById('admin-new-category').value = ''; 
+                    renderAdmin(); showToast("Categoria salva na Nuvem"); 
+                }
+            }
         }
 
-        // --- INIT ---
-        function initApp() {
-            document.getElementById('add-category').innerHTML = '<option disabled selected>Selecione...</option>' + categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-            
+        async function adminAddBanner() {
+            const service_id = document.getElementById('admin-banner-service').value, image_url = document.getElementById('admin-banner-url').value;
+            if(service_id && image_url) { 
+                const { data } = await supabaseClient.from('banners').insert([{ service_id: parseInt(service_id), image_url }]).select();
+                if(data) {
+                    banners.push(data[0]); 
+                    document.getElementById('admin-banner-url').value = ''; 
+                    renderAdmin(); showToast("Banner salvo na Nuvem"); 
+                }
+            }
+        }
+
+        async function adminDeleteService(id) {
+            await supabaseClient.from('services').delete().eq('id', id);
+            services = services.filter(x => x.id !== id);
+            renderAdmin(); showToast("Excluído permanentemente.");
+        }
+
+        async function adminDeleteBanner(id) {
+            await supabaseClient.from('banners').delete().eq('id', id);
+            banners = banners.filter(x => x.id !== id);
+            renderAdmin(); showToast("Banner excluído.");
+        }
+
+        // --- ARRANQUE DO APLICATIVO ---
+        async function initApp() {
             document.getElementById('add-whatsapp').addEventListener('input', function (e) {
                 let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
                 e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
             });
 
-            renderHome(); startBannerRotation();
+            // Conecta ao banco de dados e carrega as informações
+            await seedDatabaseIfEmpty();
+            await fetchAllData();
         }
+        
         window.onload = initApp;
 
         // --- SISTEMA DE IDIOMAS (GOOGLE TRANSLATE) ---
         function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'pt',
-                includedLanguages: 'en,es,pt',
-                autoDisplay: false
-            }, 'google_translate_element');
+            new google.translate.TranslateElement({ pageLanguage: 'pt', includedLanguages: 'en,es,pt', autoDisplay: false }, 'google_translate_element');
         }
 
         function changeLanguage(lang) {
-            // Manipula o cookie do Google Tradutor para forçar a tradução
             if (lang === 'pt') {
                 document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
                 document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=" + window.location.hostname + "; path=/;";
@@ -841,7 +905,6 @@
             window.location.reload();
         }
     </script>
-    <!-- Script Oficial do Google Tradutor -->
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
