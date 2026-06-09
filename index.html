@@ -48,9 +48,19 @@
         
         .gallery-snap { scroll-snap-type: x mandatory; }
         .gallery-snap > div { scroll-snap-align: center; }
+
+        /* Ocultar barra feia e popups do Google Tradutor */
+        .VIpgJd-Zvi9od-ORHb-OEVmcd { display: none !important; }
+        .goog-te-banner-frame { display: none !important; }
+        body { top: 0 !important; }
+        #google_translate_element { display: none !important; }
+        .VIpgJd-Zvi9od-aZ2wEe-wOHMyf { display: none !important; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen pb-20">
+
+    <!-- Tradutor Invisível do Google -->
+    <div id="google_translate_element"></div>
 
     <!-- HEADER -->
     <header class="bg-teal-600 text-white sticky top-0 z-40 shadow-md">
@@ -59,13 +69,25 @@
                 <i class="ph-fill ph-map-pin-line text-2xl text-teal-200"></i>
                 <h1 class="text-xl font-bold tracking-tight">PREÁ<span class="text-teal-200">pp</span></h1>
             </div>
-            <div class="flex gap-3">
-                <button onclick="navigate('admin')" class="w-10 h-10 rounded-full bg-teal-500 hover:bg-teal-400 flex items-center justify-center transition">
-                    <i class="ph-fill ph-gear text-xl"></i>
-                </button>
-                <button onclick="navigate('add')" class="w-10 h-10 rounded-full bg-teal-800 hover:bg-teal-900 flex items-center justify-center transition shadow-inner">
-                    <i class="ph-fill ph-plus text-xl"></i>
-                </button>
+            
+            <div class="flex items-center gap-4">
+                <!-- Seletor de Idiomas Personalizado (Bandeiras) -->
+                <div class="flex gap-2.5 text-xl bg-teal-800/50 px-2.5 py-1 rounded-lg items-center">
+                    <button onclick="changeLanguage('pt')" class="hover:scale-125 transition-transform origin-center drop-shadow-sm" title="Português">🇧🇷</button>
+                    <span class="text-teal-500 text-[10px]">|</span>
+                    <button onclick="changeLanguage('en')" class="hover:scale-125 transition-transform origin-center drop-shadow-sm" title="English">🇺🇸</button>
+                    <span class="text-teal-500 text-[10px]">|</span>
+                    <button onclick="changeLanguage('es')" class="hover:scale-125 transition-transform origin-center drop-shadow-sm" title="Español">🇪🇸</button>
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="navigate('admin')" class="w-8 h-8 rounded-full bg-teal-500 hover:bg-teal-400 flex items-center justify-center transition">
+                        <i class="ph-fill ph-gear text-sm"></i>
+                    </button>
+                    <button onclick="navigate('add')" class="w-8 h-8 rounded-full bg-teal-800 hover:bg-teal-900 flex items-center justify-center transition shadow-inner">
+                        <i class="ph-fill ph-plus text-sm"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </header>
@@ -122,6 +144,18 @@
             
             <div id="services-list" class="flex flex-col gap-4">
                 <!-- Cards via JS -->
+            </div>
+
+            <!-- Banner Fale com a Equipe -->
+            <div class="mt-8 mb-4 bg-teal-50 border border-teal-100 rounded-2xl p-5 flex flex-col items-center text-center shadow-sm">
+                <div class="w-12 h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mb-3 shadow-inner">
+                    <i class="ph-fill ph-headset text-2xl"></i>
+                </div>
+                <h3 class="font-bold text-teal-800 mb-1">Precisa de ajuda ou parceria?</h3>
+                <p class="text-xs text-teal-600 mb-4">Fale diretamente com a nossa equipe de suporte.</p>
+                <button onclick="window.open('https://wa.me/5588920015396?text=Ol%C3%A1!%20Gostaria%20de%20falar%20com%20a%20equipe%20do%20PRE%C3%81pp.', '_blank')" class="w-full bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold py-3.5 rounded-xl shadow-md shadow-green-200 flex justify-center items-center gap-2 transition active:scale-95">
+                    <i class="ph-fill ph-whatsapp text-2xl"></i> Falar com a Equipe
+                </button>
             </div>
         </div>
 
@@ -760,6 +794,29 @@
             renderHome(); startBannerRotation();
         }
         window.onload = initApp;
+
+        // --- SISTEMA DE IDIOMAS (GOOGLE TRANSLATE) ---
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'pt',
+                includedLanguages: 'en,es,pt',
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+
+        function changeLanguage(lang) {
+            // Manipula o cookie do Google Tradutor para forçar a tradução
+            if (lang === 'pt') {
+                document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=" + window.location.hostname + "; path=/;";
+            } else {
+                document.cookie = `googtrans=/pt/${lang}; path=/;`;
+                document.cookie = `googtrans=/pt/${lang}; domain=${window.location.hostname}; path=/;`;
+            }
+            window.location.reload();
+        }
     </script>
+    <!-- Script Oficial do Google Tradutor -->
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
