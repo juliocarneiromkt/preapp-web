@@ -8,6 +8,12 @@
     <!-- Favicon: Ícone para a aba do navegador -->
     <link rel="icon" type="image/png" href="https://placehold.co/64x64/0d9488/ffffff?text=P">
     
+    <!-- SEO e Cartão de Partilha (WhatsApp, Facebook, etc) -->
+    <meta property="og:title" content="PREÁpp - Catálogo Local">
+    <meta property="og:description" content="Encontre os melhores profissionais e serviços da região em um só lugar.">
+    <meta property="og:image" content="https://placehold.co/1200x630/0d9488/ffffff?text=PREApp+Catalogo+Local">
+    <meta property="og:type" content="website">
+    
     <!-- PWA: Meta tags para iOS (Apple) e Android -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="teal">
@@ -385,7 +391,7 @@
             'bg-cyan-100 text-cyan-600', 'bg-amber-100 text-amber-700', 'bg-stone-200 text-stone-700'
         ];
         
-        let categories = [
+        const defaultCategories = [
             { name: 'Alimentação', icon: 'ph-hamburger', color: 'bg-orange-100 text-orange-600' },
             { name: 'Mercados', icon: 'ph-shopping-cart', color: 'bg-emerald-100 text-emerald-600' },
             { name: 'Hospedagem', icon: 'ph-bed', color: 'bg-cyan-100 text-cyan-600' },
@@ -404,17 +410,31 @@
             { name: 'Outros', icon: 'ph-dots-three', color: 'bg-slate-100 text-slate-500' }
         ];
 
-        let services = [
+        const defaultServices = [
             { id: 1, name: 'Nexus Inteligência de Dados', category: 'Comunicação', whatsapp: '5588920015396', address: 'Cond. Araucárias, Chalé 02', desc: 'Especializada em tráfego pago e gestão de dados.', rating: 5.0, reviewsCount: 1, tier: 'vip', instagram: 'nexusdados', gallery: ['https://placehold.co/600x400/0f766e/ffffff?text=Nexus+Setup', 'https://placehold.co/600x400/0f766e/ffffff?text=Trafego'] },
             { id: 2, name: 'Ventos Kite', category: 'Kitesurf', whatsapp: '5588999999999', address: 'Praia do Preá', desc: 'Aulas de Kitesurf para iniciantes.', rating: 5.0, reviewsCount: 2, tier: 'free', gallery: [], instagram: '' },
             { id: 3, name: 'Zé Manutenção', category: 'Manutenção', whatsapp: '5588988888888', address: '', desc: 'Serviços de eletricista e encanador.', rating: 4.5, reviewsCount: 4, tier: 'free', gallery: [], instagram: '' }
         ];
 
-        let reviews = [{ serviceId: 1, name: 'João', rating: 5, text: 'Ótimo serviço!', date: '08 Jun' }];
-        let banners = [
+        const defaultReviews = [{ serviceId: 1, name: 'João', rating: 5, text: 'Ótimo serviço!', date: '08 Jun' }];
+        const defaultBanners = [
             { id: 1, serviceId: 1, imageUrl: 'https://placehold.co/800x400/1e293b/ffffff?text=NEXUS:+Destaque+Local' },
             { id: 2, serviceId: 2, imageUrl: 'https://placehold.co/800x400/0284c7/ffffff?text=Ventos+Kite+School' }
         ];
+
+        // Carrega do LocalStorage (Memória do navegador) ou usa os dados padrão
+        let categories = JSON.parse(localStorage.getItem('preapp_cats')) || defaultCategories;
+        let services = JSON.parse(localStorage.getItem('preapp_srvs')) || defaultServices;
+        let reviews = JSON.parse(localStorage.getItem('preapp_revs')) || defaultReviews;
+        let banners = JSON.parse(localStorage.getItem('preapp_bans')) || defaultBanners;
+
+        // Função mágica para salvar na memória
+        function saveToStorage() {
+            localStorage.setItem('preapp_cats', JSON.stringify(categories));
+            localStorage.setItem('preapp_srvs', JSON.stringify(services));
+            localStorage.setItem('preapp_revs', JSON.stringify(reviews));
+            localStorage.setItem('preapp_bans', JSON.stringify(banners));
+        }
 
         // --- FUNÇÕES UI / NAVEGAÇÃO ---
         function showToast(msg) {
@@ -575,6 +595,7 @@
             
             document.getElementById('form-review').reset();
             document.getElementById('detail-rating').textContent = s.rating.toFixed(1);
+            saveToStorage(); // Salva a avaliação nova
             showToast('Avaliação enviada!'); renderReviews(activeServiceId);
         }
 
@@ -621,7 +642,7 @@
             document.getElementById('modal-payment').classList.replace('flex', 'hidden');
             saveNewService(pendingServiceData); pendingServiceData = null; showToast("Pagamento Aprovado! VIP ativado.");
         }
-        function saveNewService(s) { services.push(s); document.getElementById('form-add').reset(); toggleGalleryUpload(); navigate('home'); }
+        function saveNewService(s) { services.push(s); saveToStorage(); document.getElementById('form-add').reset(); toggleGalleryUpload(); navigate('home'); }
 
         // --- ADMIN ---
         function loginAdmin() {
@@ -634,18 +655,18 @@
 
         function renderAdmin() {
             document.getElementById('admin-banner-service').innerHTML = '<option disabled selected>Vincular a qual empresa?</option>' + services.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-            document.getElementById('admin-banner-list').innerHTML = banners.map(b => `<div class="flex justify-between items-center bg-slate-700 p-2 rounded mb-1 text-xs border border-slate-600">ID ${b.serviceId} <button onclick="banners=banners.filter(x=>x.id!==${b.id});renderAdmin();" class="text-red-400">Excluir</button></div>`).join('');
+            document.getElementById('admin-banner-list').innerHTML = banners.map(b => `<div class="flex justify-between items-center bg-slate-700 p-2 rounded mb-1 text-xs border border-slate-600">ID ${b.serviceId} <button onclick="banners=banners.filter(x=>x.id!==${b.id});saveToStorage();renderAdmin();" class="text-red-400">Excluir</button></div>`).join('');
             document.getElementById('admin-category-list').innerHTML = categories.map(c => `<span class="bg-slate-700 text-xs px-2 py-1 rounded text-slate-200 border border-slate-600">${c.name}</span>`).join('');
-            document.getElementById('admin-services-list').innerHTML = services.map(s => `<div class="bg-slate-700 p-3 rounded flex justify-between items-center border border-slate-600"><div><div class="font-bold">${s.name} ${s.tier==='vip'?'👑':''}</div><div class="text-xs text-slate-400">${s.category}</div></div><button onclick="services=services.filter(x=>x.id!==${s.id});renderAdmin();" class="text-red-400 p-1"><i class="ph-fill ph-trash text-lg"></i></button></div>`).join('');
+            document.getElementById('admin-services-list').innerHTML = services.map(s => `<div class="bg-slate-700 p-3 rounded flex justify-between items-center border border-slate-600"><div><div class="font-bold">${s.name} ${s.tier==='vip'?'👑':''}</div><div class="text-xs text-slate-400">${s.category}</div></div><button onclick="services=services.filter(x=>x.id!==${s.id});saveToStorage();renderAdmin();" class="text-red-400 p-1"><i class="ph-fill ph-trash text-lg"></i></button></div>`).join('');
         }
 
         function adminAddCategory() {
             const val = document.getElementById('admin-new-category').value.trim();
-            if(val) { categories.unshift({ name: val, icon: 'ph-star', color: colorClasses[categories.length % colorClasses.length] }); document.getElementById('admin-new-category').value = ''; initApp(); renderAdmin(); showToast("Categoria criada"); }
+            if(val) { categories.unshift({ name: val, icon: 'ph-star', color: colorClasses[categories.length % colorClasses.length] }); document.getElementById('admin-new-category').value = ''; saveToStorage(); initApp(); renderAdmin(); showToast("Categoria criada"); }
         }
         function adminAddBanner() {
             const sId = document.getElementById('admin-banner-service').value, url = document.getElementById('admin-banner-url').value;
-            if(sId && url) { banners.push({id: Date.now(), serviceId: parseInt(sId), imageUrl: url}); document.getElementById('admin-banner-url').value = ''; renderAdmin(); showToast("Banner criado"); }
+            if(sId && url) { banners.push({id: Date.now(), serviceId: parseInt(sId), imageUrl: url}); document.getElementById('admin-banner-url').value = ''; saveToStorage(); renderAdmin(); showToast("Banner criado"); }
         }
 
         // --- INIT ---
