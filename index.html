@@ -198,6 +198,7 @@
                 <input type="password" id="admin-pwd" placeholder="Senha..." class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 mb-4 text-center">
                 <button onclick="loginAdmin()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-500">Entrar</button>
             </div>
+            
             <div id="admin-dashboard" class="hidden animate-fade-in pb-10">
                 <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4 mt-2">
                     <h2 class="text-xl font-bold text-white"><i class="ph-fill ph-shield-check text-blue-500"></i> Painel Gestor</h2>
@@ -207,6 +208,52 @@
                 <div class="bg-slate-800 rounded-xl p-4 mb-6">
                     <h3 class="font-bold text-white mb-4">Status do Banco de Dados</h3>
                     <div id="admin-db-status" class="text-sm p-3 rounded bg-slate-700 border border-slate-600 font-mono">Verificando...</div>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 mb-6">
+                    <h3 class="font-bold text-white mb-4"><i class="ph-fill ph-storefront"></i> Cadastrar Empresa</h3>
+                    <div class="flex flex-col gap-3 text-sm">
+                        <input type="text" id="admin-add-name" placeholder="Nome da Empresa *" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none">
+                        <select id="admin-add-category" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none"></select>
+                        <input type="tel" id="admin-add-whatsapp" placeholder="WhatsApp *" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none">
+                        <input type="text" id="admin-add-address" placeholder="Endereço" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none">
+                        <textarea id="admin-add-desc" placeholder="Descrição *" rows="2" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none"></textarea>
+                        
+                        <div class="flex gap-4 items-center bg-slate-700 p-2 rounded-lg border border-slate-600">
+                            <span class="text-slate-300 font-bold">Plano:</span>
+                            <label class="flex items-center gap-1 text-white cursor-pointer"><input type="radio" name="adminPlanType" value="free" checked onchange="toggleAdminGallery()"> Free</label>
+                            <label class="flex items-center gap-1 text-amber-400 cursor-pointer font-bold"><input type="radio" name="adminPlanType" value="vip" onchange="toggleAdminGallery()"> VIP 👑</label>
+                        </div>
+                        
+                        <div id="admin-upload-section" class="hidden flex-col gap-3 bg-slate-700/50 p-3 rounded-lg border border-amber-500/30">
+                            <input type="text" id="admin-add-instagram" placeholder="Instagram (sem @)" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none">
+                            <div>
+                                <div class="text-xs text-amber-400 mb-1 font-bold">Fotos VIP (Até 5):</div>
+                                <input type="file" id="admin-add-gallery" multiple accept="image/*" class="w-full text-xs text-slate-300 file:bg-amber-600 file:hover:bg-amber-500 file:text-white file:border-0 file:px-3 file:py-1 file:rounded cursor-pointer">
+                            </div>
+                        </div>
+
+                        <button onclick="adminSubmitNewService()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg mt-2 shadow-lg transition">Publicar Perfil Direto</button>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 mb-6">
+                    <h3 class="font-bold text-white mb-4"><i class="ph-fill ph-image"></i> Banners</h3>
+                    <div class="flex flex-col gap-2">
+                        <select id="admin-banner-service" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white"></select>
+                        <input type="url" id="admin-banner-url" placeholder="URL da Imagem" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white">
+                        <button onclick="adminAddBanner()" class="bg-blue-600 text-white py-2 rounded-lg text-sm mt-1">Adicionar Destaque</button>
+                    </div>
+                    <div id="admin-banner-list" class="flex flex-col gap-2 mt-4 pt-4 border-t border-slate-700"></div>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 mb-6">
+                    <h3 class="font-bold text-white mb-4"><i class="ph-fill ph-squares-four"></i> Categorias</h3>
+                    <div class="flex gap-2 mb-4">
+                        <input type="text" id="admin-new-category" placeholder="Nova categoria..." class="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white">
+                        <button onclick="adminAddCategory()" class="bg-blue-600 px-4 rounded-lg font-bold text-sm">Criar</button>
+                    </div>
+                    <div id="admin-category-list" class="flex flex-wrap gap-2"></div>
                 </div>
 
                 <div class="bg-slate-800 rounded-xl p-4 mb-6">
@@ -223,13 +270,12 @@
 
     <script>
         const { createClient } = supabase;
-       const supabaseUrl = 'https://kbldhejhvlxylusyboyc.supabase.co';
+        const supabaseUrl = 'https://kbldhejhvlxylusyboyc.supabase.co';
         
         // ==========================================
-        // ATENÇÃO: SUBSTITUA O TEXTO ABAIXO PELA SUA CHAVE LONGA (LEGACY ANON KEY)
-        // VEJA QUE DEVE MANTER AS ASPAS SIMPLES LATERAIS.
+        // ATENÇÃO: COLE SUA CHAVE LONGA (LEGACY) ABAIXO:
         // ==========================================
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtibGRoZWpodmx4eWx1c3lib3ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjk0NTEsImV4cCI6MjA5NjYwNTQ1MX0.WEWNNEdcWqU7cKcVEZ3bApUD7M0Cf5Q1y_1zgZW2DNg';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtibGRoZWpodmx4eWx1c3lib3ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjk0NTEsImV4cCI6MjA5NjYwNTQ1MX0.WEWNNEdcWqU7cKcVEZ3bApUD7M0Cf5Q1y_1zgZW2DNg'; 
         
         let clientSupabase = null;
         let isOnline = false;
@@ -260,7 +306,7 @@
         ];
 
         async function fetchAllData() {
-            if (!clientSupabase || supabaseKey.includes('COLE_AQUI')) return activateOfflineMode("Chave ainda não configurada no HTML.");
+            if (!clientSupabase || supabaseKey.includes('SUA_CHAVE')) return activateOfflineMode("Chave ainda não configurada no HTML.");
             
             try {
                 const { data: catCheck, error: errCheck } = await clientSupabase.from('categories').select('*');
@@ -371,7 +417,7 @@
         async function saveNewService(s) { 
             if(isOnline) {
                 const { data } = await clientSupabase.from('services').insert([s]).select();
-                if(data) s = data[0];
+                if(data) s.id = data[0].id;
             } else { s.id = Date.now(); }
             services.unshift(s); 
             localStorage.setItem('bkp_srv', JSON.stringify(services));
@@ -388,11 +434,56 @@
             document.getElementById('form-review').reset(); openService(activeServiceId); showToast('Avaliação enviada!');
         }
 
+        // --- FUNÇÕES DO PAINEL GESTOR RESTAURADAS ---
         function loginAdmin() { if(document.getElementById('admin-pwd').value === '#Bb0991%2704@') { document.getElementById('admin-login').classList.add('hidden'); document.getElementById('admin-dashboard').classList.remove('hidden'); renderAdmin(); } else showToast("Senha incorreta!"); }
+        
         function renderAdmin() {
             document.getElementById('admin-db-status').innerHTML = isOnline ? '<span class="text-green-400">● Conectado ao Supabase</span>' : '<span class="text-red-400">● MODO OFFLINE (Sem Nuvem)</span>';
-            document.getElementById('admin-services-list').innerHTML = services.map(s => `<div class="bg-slate-700 p-3 rounded flex justify-between items-center border border-slate-600 mb-2"><div><div class="font-bold">${s.name}</div><div class="text-xs text-slate-400">${s.category}</div></div><button onclick="adminDeleteService(${s.id})" class="text-red-400 p-1"><i class="ph-fill ph-trash text-lg"></i></button></div>`).join('');
+            document.getElementById('admin-services-list').innerHTML = services.map(s => `<div class="bg-slate-700 p-3 rounded flex justify-between items-center border border-slate-600 mb-2"><div><div class="font-bold">${s.name} ${s.tier==='vip'?'👑':''}</div><div class="text-xs text-slate-400">${s.category}</div></div><button onclick="adminDeleteService(${s.id})" class="text-red-400 p-1"><i class="ph-fill ph-trash text-lg"></i></button></div>`).join('');
+            
+            // Popula os Selects e Listas do Admin
+            document.getElementById('admin-add-category').innerHTML = '<option value="" disabled selected>Selecione a Categoria...</option>' + categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            document.getElementById('admin-banner-service').innerHTML = '<option disabled selected>Vincular a qual empresa?</option>' + services.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            document.getElementById('admin-banner-list').innerHTML = banners.map(b => `<div class="flex justify-between items-center bg-slate-700 p-2 rounded mb-1 text-xs border border-slate-600">ID ${b.service_id} <button onclick="adminDeleteBanner(${b.id})" class="text-red-400">Excluir</button></div>`).join('');
+            document.getElementById('admin-category-list').innerHTML = categories.map(c => `<span class="bg-slate-700 text-xs px-2 py-1 rounded text-slate-200 border border-slate-600">${c.name} <button onclick="adminDeleteCategory(${c.id})" class="ml-2 text-red-400 font-bold">x</button></span>`).join('');
         }
+
+        function toggleAdminGallery() { const isVip = document.querySelector('input[name="adminPlanType"]:checked').value === 'vip'; const s = document.getElementById('admin-upload-section'); isVip ? (s.classList.remove('hidden'), s.classList.add('flex')) : (s.classList.add('hidden'), s.classList.remove('flex')); }
+
+        async function adminSubmitNewService() {
+            const name = document.getElementById('admin-add-name').value, category = document.getElementById('admin-add-category').value, whatsapp = document.getElementById('admin-add-whatsapp').value.replace(/\D/g, ''), address = document.getElementById('admin-add-address').value, description = document.getElementById('admin-add-desc').value;
+            if(!name || !category || !whatsapp || !description) return showToast("Preencha Nome, Categoria, WhatsApp e Descrição!");
+            const tier = document.querySelector('input[name="adminPlanType"]:checked').value;
+            let gal = []; if(tier === 'vip') { const files = document.getElementById('admin-add-gallery').files; for(let i=0; i<Math.min(files.length, 5); i++) gal.push(await toBase64(files[i])); }
+            const ns = { name, category, whatsapp, address, description, rating: 0, reviews_count: 0, tier, instagram: tier === 'vip' ? document.getElementById('admin-add-instagram').value.replace('@','') : '', gallery: gal };
+            
+            if(isOnline) { const { data } = await clientSupabase.from('services').insert([ns]).select(); if(data) ns.id = data[0].id; } else { ns.id = Date.now(); }
+            services.unshift(ns); localStorage.setItem('bkp_srv', JSON.stringify(services));
+            document.getElementById('admin-add-name').value=''; document.getElementById('admin-add-whatsapp').value=''; document.getElementById('admin-add-desc').value=''; document.getElementById('admin-add-instagram').value=''; document.getElementById('admin-add-gallery').value='';
+            renderAdmin(); showToast(isOnline ? "Salvo na Nuvem!" : "Salvo offline!");
+        }
+
+        async function adminAddCategory() {
+            const val = document.getElementById('admin-new-category').value.trim();
+            if(val) {
+                const nc = { name: val, icon: 'ph-star', color: 'bg-blue-100 text-blue-600' };
+                if(isOnline) { const { data } = await clientSupabase.from('categories').insert([nc]).select(); if(data) nc.id = data[0].id; } else { nc.id = Date.now(); }
+                categories.push(nc); localStorage.setItem('bkp_cat', JSON.stringify(categories));
+                document.getElementById('admin-new-category').value = ''; renderAdmin(); showToast("Categoria salva!");
+            }
+        }
+
+        async function adminAddBanner() {
+            const service_id = document.getElementById('admin-banner-service').value, image_url = document.getElementById('admin-banner-url').value;
+            if(service_id && image_url) {
+                const nb = { service_id: parseInt(service_id), image_url };
+                if(isOnline) { const { data } = await clientSupabase.from('banners').insert([nb]).select(); if(data) nb.id = data[0].id; } else { nb.id = Date.now(); }
+                banners.push(nb); renderAdmin(); document.getElementById('admin-banner-url').value=''; showToast("Banner salvo!");
+            }
+        }
+
+        async function adminDeleteBanner(id) { if(isOnline) await clientSupabase.from('banners').delete().eq('id', id); banners = banners.filter(x => x.id !== id); renderAdmin(); showToast("Banner excluído."); }
+        async function adminDeleteCategory(id) { if(isOnline) await clientSupabase.from('categories').delete().eq('id', id); categories = categories.filter(x => x.id !== id); localStorage.setItem('bkp_cat', JSON.stringify(categories)); renderAdmin(); showToast("Categoria excluída."); }
         async function adminDeleteService(id) { if(isOnline) await clientSupabase.from('services').delete().eq('id', id); services = services.filter(x => x.id !== id); renderAdmin(); showToast("Excluído."); }
 
         window.onload = function() {
