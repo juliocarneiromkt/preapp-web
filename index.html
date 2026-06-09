@@ -112,10 +112,15 @@
                 <i class="ph-bold ph-caret-right text-blue-500"></i>
             </div>
 
-            <!-- Busca -->
-            <div class="relative mb-6">
-                <input type="text" id="search-input" placeholder="Buscar serviços, locais, palavras..." class="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                <i class="ph ph-magnifying-glass absolute left-4 top-3.5 text-slate-400 text-xl"></i>
+            <!-- Busca e Compartilhar App -->
+            <div class="flex gap-2 mb-6">
+                <div class="relative flex-1">
+                    <input type="text" id="search-input" placeholder="Buscar serviços, palavras..." class="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    <i class="ph ph-magnifying-glass absolute left-4 top-3.5 text-slate-400 text-xl"></i>
+                </div>
+                <button onclick="shareApp()" class="bg-blue-600 text-white rounded-2xl px-4 flex items-center justify-center shadow-md hover:bg-blue-700 transition active:scale-95" title="Compartilhar App">
+                    <i class="ph-bold ph-share-network text-2xl"></i>
+                </button>
             </div>
 
             <!-- Container Dinâmico da Home -->
@@ -195,7 +200,7 @@
                     <button id="btn-instagram" class="hidden w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:opacity-90 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-pink-200 justify-center items-center gap-2 transition active:scale-95">
                         <i class="ph-fill ph-instagram-logo text-2xl"></i> Ver no Instagram
                     </button>
-                    <button id="btn-share" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl flex justify-center items-center gap-2 transition active:scale-95">
+                    <button id="btn-share" class="hidden w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl justify-center items-center gap-2 transition active:scale-95">
                         <i class="ph-bold ph-share-network text-xl"></i> Compartilhar Perfil
                     </button>
                 </div>
@@ -531,6 +536,21 @@
             document.getElementById('modal-install').classList.remove('flex');
         }
 
+        // --- COMPARTILHAMENTO GLOBAL DO APP ---
+        function shareApp() {
+            const shareData = {
+                title: 'PREÁpp - O Catálogo do Preá',
+                text: 'Descubra os melhores profissionais, serviços e negócios do Preá na palma da sua mão!',
+                url: 'https://preapp-ten.vercel.app/'
+            };
+            if (navigator.share) {
+                navigator.share(shareData).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(`${shareData.text} Acesse: ${shareData.url}`); 
+                showToast("Link do aplicativo copiado!");
+            }
+        }
+
         // --- HOME / BUSCA ---
         function removeAccents(str) { return str.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
 
@@ -628,11 +648,14 @@
             btnInsta.style.display = (s.tier==='vip' && s.instagram) ? 'flex' : 'none';
             btnInsta.onclick = () => window.open(`https://instagram.com/${s.instagram}`, '_blank');
 
-            document.getElementById('btn-share').onclick = () => {
+            const btnShare = document.getElementById('btn-share');
+            btnShare.style.display = (s.tier === 'vip') ? 'flex' : 'none';
+            btnShare.onclick = () => {
                 if (navigator.share) {
-                    navigator.share({ title: `${s.name} no PREÁpp`, text: `Veja o perfil de ${s.name} no PREÁpp!`, url: window.location.href }).catch(console.error);
+                    navigator.share({ title: `${s.name} no PREÁpp`, text: `Veja o perfil VIP de ${s.name} no PREÁpp!`, url: window.location.href }).catch(console.error);
                 } else {
-                    navigator.clipboard.writeText(`Veja o perfil de ${s.name} no PREÁpp!`); showToast("Link copiado!");
+                    navigator.clipboard.writeText(`Veja o perfil VIP de ${s.name} no PREÁpp! Acesse: ` + window.location.href); 
+                    showToast("Link copiado!");
                 }
             };
 
