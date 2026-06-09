@@ -454,7 +454,16 @@
             { id: 4, name: 'Kitesurf', icon: 'ph-waves', color: 'bg-blue-100 text-blue-600' },
             { id: 5, name: 'Saúde', icon: 'ph-first-aid-kit', color: 'bg-rose-100 text-rose-600' },
             { id: 6, name: 'Manutenção', icon: 'ph-wrench', color: 'bg-amber-100 text-amber-700' },
-            { id: 7, name: 'Comunicação', icon: 'ph-megaphone', color: 'bg-purple-100 text-purple-600' }
+            { id: 7, name: 'Comunicação', icon: 'ph-megaphone', color: 'bg-purple-100 text-purple-600' },
+            { id: 8, name: 'Beleza', icon: 'ph-scissors', color: 'bg-pink-100 text-pink-600' },
+            { id: 9, name: 'Transporte', icon: 'ph-car', color: 'bg-indigo-100 text-indigo-600' },
+            { id: 10, name: 'Pets', icon: 'ph-paw-print', color: 'bg-stone-200 text-stone-700' },
+            { id: 11, name: 'Moda', icon: 'ph-t-shirt', color: 'bg-rose-100 text-rose-600' },
+            { id: 12, name: 'Imóveis', icon: 'ph-house-line', color: 'bg-teal-100 text-teal-600' },
+            { id: 13, name: 'Educação', icon: 'ph-graduation-cap', color: 'bg-blue-100 text-blue-600' },
+            { id: 14, name: 'Construção', icon: 'ph-hammer', color: 'bg-amber-100 text-amber-700' },
+            { id: 15, name: 'Eventos', icon: 'ph-confetti', color: 'bg-purple-100 text-purple-600' },
+            { id: 16, name: 'Serviços Gerais', icon: 'ph-briefcase', color: 'bg-slate-200 text-slate-700' }
         ];
 
         const defaultServices = [
@@ -483,7 +492,16 @@
             const savedSrv = localStorage.getItem('preapp_services');
             if (savedSrv) {
                 services = JSON.parse(savedSrv);
-                categories = JSON.parse(localStorage.getItem('preapp_categories') || JSON.stringify(defaultCategories));
+                
+                // Força a atualização das categorias caso o código tenha categorias novas
+                const localCats = JSON.parse(localStorage.getItem('preapp_categories') || '[]');
+                if (localCats.length < defaultCategories.length) {
+                    categories = [...defaultCategories];
+                    saveData();
+                } else {
+                    categories = localCats;
+                }
+                
                 banners = JSON.parse(localStorage.getItem('preapp_banners') || '[]');
                 reviews = JSON.parse(localStorage.getItem('preapp_reviews') || '[]');
             } else {
