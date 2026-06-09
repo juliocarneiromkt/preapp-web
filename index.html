@@ -29,6 +29,9 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
+    <!-- SUPABASE JS LIBRARY -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -137,7 +140,11 @@
             </div>
             
             <div id="services-list" class="flex flex-col gap-4">
-                <!-- Serviços via JS -->
+                <!-- Status Carregamento -->
+                <div class="text-center py-10 text-slate-400 flex flex-col items-center gap-2">
+                    <i class="ph ph-spinner animate-spin text-3xl"></i>
+                    <p>Sincronizando com o servidor...</p>
+                </div>
             </div>
 
             <div class="mt-8 mb-4 bg-blue-50 border border-blue-100 rounded-2xl p-5 flex flex-col items-center text-center shadow-sm">
@@ -433,11 +440,28 @@
     <div id="toast-container" class="fixed bottom-4 left-1/2 -translate-x-1/2 w-max max-w-[90vw] z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <script>
-        // --- ESTADOS E DADOS LOCAIS (OFFLINE) ---
+        // --- 1. CONFIGURAÇÃO SEGURA DO SUPABASE ---
+        const { createClient } = supabase;
+        const supabaseUrl = 'https://kbldhejhlvxlusyboyc.supabase.co';
+        const supabaseKey = 'sb_publishable_HZkzSkN1PFcP4AyHoYdYvg_SEl9hXSx';
+        
+        let clientSupabase = null;
+        try {
+            clientSupabase = createClient(supabaseUrl, supabaseKey);
+        } catch (e) {
+            console.error("Erro ao inicializar biblioteca do Supabase", e);
+        }
+
+        // --- ESTADOS ---
         let currentView = 'home';
         let activeServiceId = null;
         let bannerInterval = null;
         let pendingServiceData = null;
+
+        let categories = [];
+        let services = [];
+        let reviews = [];
+        let banners = [];
 
         const colorClasses = [
             'bg-blue-100 text-blue-600', 'bg-green-100 text-green-600', 'bg-purple-100 text-purple-600', 
@@ -446,82 +470,98 @@
             'bg-cyan-100 text-cyan-600', 'bg-amber-100 text-amber-700', 'bg-stone-200 text-stone-700'
         ];
 
-        // Semente inicial caso seja o primeiro acesso
-        const defaultCategories = [
-            { id: 1, name: 'Alimentação', icon: 'ph-hamburger', color: 'bg-orange-100 text-orange-600' },
-            { id: 2, name: 'Mercados', icon: 'ph-shopping-cart', color: 'bg-emerald-100 text-emerald-600' },
-            { id: 3, name: 'Hospedagem', icon: 'ph-bed', color: 'bg-cyan-100 text-cyan-600' },
-            { id: 4, name: 'Kitesurf', icon: 'ph-waves', color: 'bg-blue-100 text-blue-600' },
-            { id: 5, name: 'Saúde', icon: 'ph-first-aid-kit', color: 'bg-rose-100 text-rose-600' },
-            { id: 6, name: 'Manutenção', icon: 'ph-wrench', color: 'bg-amber-100 text-amber-700' },
-            { id: 7, name: 'Comunicação', icon: 'ph-megaphone', color: 'bg-purple-100 text-purple-600' },
-            { id: 8, name: 'Beleza', icon: 'ph-scissors', color: 'bg-pink-100 text-pink-600' },
-            { id: 9, name: 'Transporte', icon: 'ph-car', color: 'bg-indigo-100 text-indigo-600' },
-            { id: 10, name: 'Pets', icon: 'ph-paw-print', color: 'bg-stone-200 text-stone-700' },
-            { id: 11, name: 'Moda', icon: 'ph-t-shirt', color: 'bg-rose-100 text-rose-600' },
-            { id: 12, name: 'Imóveis', icon: 'ph-house-line', color: 'bg-teal-100 text-teal-600' },
-            { id: 13, name: 'Educação', icon: 'ph-graduation-cap', color: 'bg-blue-100 text-blue-600' },
-            { id: 14, name: 'Construção', icon: 'ph-hammer', color: 'bg-amber-100 text-amber-700' },
-            { id: 15, name: 'Eventos', icon: 'ph-confetti', color: 'bg-purple-100 text-purple-600' },
-            { id: 16, name: 'Serviços Gerais', icon: 'ph-briefcase', color: 'bg-slate-200 text-slate-700' }
-        ];
-
-        const defaultServices = [
-            { id: 1, name: 'Nexus Inteligência de Dados', category: 'Comunicação', whatsapp: '5588920015396', address: 'Cond. Araucárias, Chalé 02', description: 'Especializada em tráfego pago e gestão de dados.', rating: 5.0, reviews_count: 1, tier: 'vip', instagram: 'nexusdados', gallery: ['https://placehold.co/600x400/0f766e/ffffff?text=Nexus+Setup', 'https://placehold.co/600x400/0f766e/ffffff?text=Trafego'] },
-            { id: 2, name: 'Ventos Kite', category: 'Kitesurf', whatsapp: '5588999999999', address: 'Praia do Preá', description: 'Aulas de Kitesurf para iniciantes.', rating: 5.0, reviews_count: 1, tier: 'free', instagram: '', gallery: [] },
-            { id: 3, name: 'Zé Manutenção', category: 'Manutenção', whatsapp: '5588988888888', address: '', description: 'Serviços de eletricista e encanador.', rating: 5.0, reviews_count: 1, tier: 'free', instagram: '', gallery: [] }
-        ];
-
-        const defaultBanners = [
-            { id: 1, service_id: 1, image_url: 'https://placehold.co/800x400/1e293b/ffffff?text=NEXUS:+Destaque+Local' },
-            { id: 2, service_id: 2, image_url: 'https://placehold.co/800x400/0284c7/ffffff?text=Ventos+Kite+School' }
-        ];
-
-        const defaultReviews = [
-            { id: 1, service_id: 1, name: 'João', rating: 5, text: 'Excelente serviço de tráfego.' },
-            { id: 2, service_id: 2, name: 'Maria', rating: 5, text: 'Melhor aula de kite!' },
-            { id: 3, service_id: 3, name: 'Carlos', rating: 5, text: 'Consertou tudo rápido.' }
-        ];
-
-        let categories = [];
-        let services = [];
-        let reviews = [];
-        let banners = [];
-
-        function loadData() {
-            const savedSrv = localStorage.getItem('preapp_services');
-            if (savedSrv) {
-                services = JSON.parse(savedSrv);
-                
-                // Força a atualização das categorias caso o código tenha categorias novas
-                const localCats = JSON.parse(localStorage.getItem('preapp_categories') || '[]');
-                if (localCats.length < defaultCategories.length) {
-                    categories = [...defaultCategories];
-                    saveData();
-                } else {
-                    categories = localCats;
-                }
-                
-                banners = JSON.parse(localStorage.getItem('preapp_banners') || '[]');
-                reviews = JSON.parse(localStorage.getItem('preapp_reviews') || '[]');
-            } else {
-                categories = [...defaultCategories];
-                services = [...defaultServices];
-                banners = [...defaultBanners];
-                reviews = [...defaultReviews];
-                saveData();
-            }
+        // --- BUSCANDO DADOS E SEMEANDO O BANCO VAZIO ---
+        async function fetchAllData() {
+            if (!clientSupabase) return handleNetworkError("Falha na inicialização da nuvem.");
             
-            document.getElementById('add-category').innerHTML = '<option disabled selected>Selecione...</option>' + categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-            renderHome();
-            startBannerRotation();
+            try {
+                // 1. Checar se o banco está vazio (apenas categorias)
+                const { data: catCheck, error: errCheck } = await clientSupabase.from('categories').select('*');
+                
+                if (errCheck) throw errCheck;
+
+                // 2. Se vazio, injetar a semente (As 16 categorias e serviços de teste)
+                if (!catCheck || catCheck.length === 0) {
+                    await seedDatabase();
+                }
+
+                // 3. Buscar tudo
+                const [cats, srvs, revs, bans] = await Promise.all([
+                    clientSupabase.from('categories').select('*'),
+                    clientSupabase.from('services').select('*').order('created_at', { ascending: false }),
+                    clientSupabase.from('reviews').select('*').order('created_at', { ascending: false }),
+                    clientSupabase.from('banners').select('*')
+                ]);
+
+                if (cats.error || srvs.error) throw (cats.error || srvs.error);
+
+                categories = cats.data || [];
+                services = srvs.data || [];
+                reviews = revs.data || [];
+                banners = bans.data || [];
+
+                document.getElementById('add-category').innerHTML = '<option disabled selected>Selecione...</option>' + categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+                
+                renderHome(); 
+                startBannerRotation();
+            } catch (error) {
+                console.error("Erro fatal de conexão com Supabase:", error);
+                handleNetworkError("Conexão bloqueada ou sem internet. Usando modo offline temporário.");
+            }
         }
 
-        function saveData() {
-            localStorage.setItem('preapp_services', JSON.stringify(services));
-            localStorage.setItem('preapp_categories', JSON.stringify(categories));
-            localStorage.setItem('preapp_banners', JSON.stringify(banners));
-            localStorage.setItem('preapp_reviews', JSON.stringify(reviews));
+        async function seedDatabase() {
+            console.log("Plantando semente inicial no Supabase...");
+            
+            const catSeed = [
+                { name: 'Alimentação', icon: 'ph-hamburger', color: 'bg-orange-100 text-orange-600' },
+                { name: 'Mercados', icon: 'ph-shopping-cart', color: 'bg-emerald-100 text-emerald-600' },
+                { name: 'Hospedagem', icon: 'ph-bed', color: 'bg-cyan-100 text-cyan-600' },
+                { name: 'Kitesurf', icon: 'ph-waves', color: 'bg-blue-100 text-blue-600' },
+                { name: 'Saúde', icon: 'ph-first-aid-kit', color: 'bg-rose-100 text-rose-600' },
+                { name: 'Manutenção', icon: 'ph-wrench', color: 'bg-amber-100 text-amber-700' },
+                { name: 'Comunicação', icon: 'ph-megaphone', color: 'bg-purple-100 text-purple-600' },
+                { name: 'Beleza', icon: 'ph-scissors', color: 'bg-pink-100 text-pink-600' },
+                { name: 'Transporte', icon: 'ph-car', color: 'bg-indigo-100 text-indigo-600' },
+                { name: 'Pets', icon: 'ph-paw-print', color: 'bg-stone-200 text-stone-700' },
+                { name: 'Moda', icon: 'ph-t-shirt', color: 'bg-rose-100 text-rose-600' },
+                { name: 'Imóveis', icon: 'ph-house-line', color: 'bg-teal-100 text-teal-600' },
+                { name: 'Educação', icon: 'ph-graduation-cap', color: 'bg-blue-100 text-blue-600' },
+                { name: 'Construção', icon: 'ph-hammer', color: 'bg-amber-100 text-amber-700' },
+                { name: 'Eventos', icon: 'ph-confetti', color: 'bg-purple-100 text-purple-600' },
+                { name: 'Serviços Gerais', icon: 'ph-briefcase', color: 'bg-slate-200 text-slate-700' }
+            ];
+            
+            await clientSupabase.from('categories').insert(catSeed);
+
+            const { data: srvs } = await clientSupabase.from('services').insert([
+                { name: 'Nexus Inteligência de Dados', category: 'Comunicação', whatsapp: '5588920015396', address: 'Cond. Araucárias, Chalé 02', description: 'Especializada em tráfego pago e gestão de dados.', rating: 5.0, reviews_count: 1, tier: 'vip', instagram: 'nexusdados', gallery: ['https://placehold.co/600x400/0f766e/ffffff?text=Nexus+Setup', 'https://placehold.co/600x400/0f766e/ffffff?text=Trafego'] },
+                { name: 'Ventos Kite', category: 'Kitesurf', whatsapp: '5588999999999', address: 'Praia do Preá', description: 'Aulas de Kitesurf para iniciantes.', rating: 5.0, reviews_count: 1, tier: 'free', instagram: '', gallery: [] },
+                { name: 'Zé Manutenção', category: 'Manutenção', whatsapp: '5588988888888', address: '', description: 'Serviços de eletricista e encanador.', rating: 5.0, reviews_count: 1, tier: 'free', instagram: '', gallery: [] }
+            ]).select();
+
+            if(srvs && srvs.length >= 3) {
+                await clientSupabase.from('banners').insert([
+                    { service_id: srvs[0].id, image_url: 'https://placehold.co/800x400/1e293b/ffffff?text=NEXUS:+Destaque+Local' },
+                    { service_id: srvs[1].id, image_url: 'https://placehold.co/800x400/0284c7/ffffff?text=Ventos+Kite+School' }
+                ]);
+                await clientSupabase.from('reviews').insert([
+                    { service_id: srvs[0].id, name: 'João', rating: 5, text: 'Excelente serviço de tráfego.' },
+                    { service_id: srvs[1].id, name: 'Maria', rating: 5, text: 'Melhor aula de kite!' },
+                    { service_id: srvs[2].id, name: 'Carlos', rating: 5, text: 'Consertou tudo rápido.' }
+                ]);
+            }
+        }
+
+        function handleNetworkError(msg) {
+            document.getElementById('services-list').innerHTML = `
+                <div class="bg-red-50 p-4 rounded-xl text-center border border-red-100">
+                    <p class="text-red-600 font-bold mb-2">Erro de Nuvem</p>
+                    <p class="text-red-500 text-sm">${msg}</p>
+                    <button onclick="window.location.reload()" class="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Tentar Novamente</button>
+                </div>
+            `;
+            showToast("Falha na sincronização. Tentando modo offline...");
         }
 
         const toBase64 = file => new Promise((resolve, reject) => {
@@ -679,28 +719,33 @@
             `).join('') || `<p class="text-sm text-center py-4 bg-slate-50 text-slate-400 rounded-lg">Seja o primeiro a avaliar!</p>`;
         }
 
-        // --- ENVIANDO DADOS (LOCAL) ---
-        function submitReview(e) {
+        // --- ENVIANDO DADOS PARA O SUPABASE ---
+        async function submitReview(e) {
             e.preventDefault();
+            if(!clientSupabase) return showToast("Banco de dados offline.");
+
             const newRev = {
-                id: Date.now(),
                 service_id: activeServiceId,
                 name: document.getElementById('rev-name').value,
                 rating: parseInt(document.getElementById('rev-stars').value),
                 text: document.getElementById('rev-comment').value
             };
             
-            reviews.unshift(newRev);
-            const s = services.find(x => x.id === activeServiceId);
-            const sr = reviews.filter(r => r.service_id === activeServiceId);
-            s.rating = sr.reduce((a,b)=>a+b.rating,0)/sr.length; 
-            s.reviews_count = sr.length;
-            
-            saveData();
-            document.getElementById('form-review').reset();
-            document.getElementById('detail-rating').textContent = s.rating.toFixed(1);
-            showToast('Avaliação enviada!'); 
-            renderReviews(activeServiceId);
+            const { data, error } = await clientSupabase.from('reviews').insert([newRev]).select();
+            if(!error && data) {
+                reviews.unshift(data[0]);
+                const s = services.find(x => x.id === activeServiceId);
+                const sr = reviews.filter(r => r.service_id === activeServiceId);
+                s.rating = sr.reduce((a,b)=>a+b.rating,0)/sr.length; 
+                s.reviews_count = sr.length;
+                
+                await clientSupabase.from('services').update({ rating: s.rating, reviews_count: s.reviews_count }).eq('id', s.id);
+                
+                document.getElementById('form-review').reset();
+                document.getElementById('detail-rating').textContent = s.rating.toFixed(1);
+                showToast('Avaliação enviada para a Nuvem!'); 
+                renderReviews(activeServiceId);
+            }
         }
 
         function toggleGalleryUpload() {
@@ -719,7 +764,6 @@
             }
 
             const ns = {
-                id: Date.now(),
                 name: document.getElementById('add-name').value,
                 category: document.getElementById('add-category').value,
                 whatsapp: document.getElementById('add-whatsapp').value.replace(/\D/g, ''),
@@ -749,13 +793,20 @@
             showToast("Pagamento Aprovado! VIP ativado.");
         }
 
-        function saveNewService(s) { 
-            services.unshift(s); 
-            saveData();
-            document.getElementById('form-add').reset(); 
-            toggleGalleryUpload(); 
-            navigate('home');
-            showToast("Cadastrado com sucesso!");
+        async function saveNewService(s) { 
+            if(!clientSupabase) return showToast("Erro de conexão.");
+            
+            const { data, error } = await clientSupabase.from('services').insert([s]).select();
+            
+            if(data) {
+                services.unshift(data[0]); 
+                document.getElementById('form-add').reset(); 
+                toggleGalleryUpload(); 
+                navigate('home');
+                showToast("Cadastrado na Nuvem com sucesso!");
+            } else {
+                showToast("Falha ao salvar: " + error.message);
+            }
         }
 
         // --- ADMIN ---
@@ -797,36 +848,51 @@
                 for(let i=0; i<Math.min(files.length, 5); i++) { gal.push(await toBase64(files[i])); }
             }
 
-            const ns = { id: Date.now(), name, category, whatsapp, address, description, rating: 0, reviews_count: 0, tier, instagram: tier === 'vip' ? document.getElementById('admin-add-instagram').value.replace('@','') : '', gallery: gal };
+            const ns = { name, category, whatsapp, address, description, rating: 0, reviews_count: 0, tier, instagram: tier === 'vip' ? document.getElementById('admin-add-instagram').value.replace('@','') : '', gallery: gal };
             
-            services.unshift(ns);
-            saveData();
-            document.getElementById('admin-add-name').value = ''; document.getElementById('admin-add-category').value = ''; document.getElementById('admin-add-whatsapp').value = ''; document.getElementById('admin-add-address').value = ''; document.getElementById('admin-add-desc').value = ''; document.getElementById('admin-add-instagram').value = ''; document.getElementById('admin-add-gallery').value = ''; document.querySelector('input[name="adminPlanType"][value="free"]').checked = true;
-            toggleAdminGallery(); renderAdmin(); showToast("Salvo!");
+            const { data } = await clientSupabase.from('services').insert([ns]).select();
+            if(data) {
+                services.unshift(data[0]);
+                document.getElementById('admin-add-name').value = ''; document.getElementById('admin-add-category').value = ''; document.getElementById('admin-add-whatsapp').value = ''; document.getElementById('admin-add-address').value = ''; document.getElementById('admin-add-desc').value = ''; document.getElementById('admin-add-instagram').value = ''; document.getElementById('admin-add-gallery').value = ''; document.querySelector('input[name="adminPlanType"][value="free"]').checked = true;
+                toggleAdminGallery(); renderAdmin(); showToast("Salvo na Nuvem!");
+            }
         }
 
-        function adminAddCategory() {
+        async function adminAddCategory() {
             const val = document.getElementById('admin-new-category').value.trim();
             if(val) { 
-                const nc = { id: Date.now(), name: val, icon: 'ph-star', color: colorClasses[categories.length % colorClasses.length] };
-                categories.push(nc);
-                saveData();
-                document.getElementById('admin-new-category').value = ''; renderAdmin(); showToast("Categoria salva!");
+                const nc = { name: val, icon: 'ph-star', color: colorClasses[categories.length % colorClasses.length] };
+                const { data } = await clientSupabase.from('categories').insert([nc]).select();
+                if(data) {
+                    categories.push(data[0]);
+                    document.getElementById('admin-new-category').value = ''; renderAdmin(); showToast("Categoria salva!");
+                }
             }
         }
 
-        function adminAddBanner() {
+        async function adminAddBanner() {
             const service_id = document.getElementById('admin-banner-service').value, image_url = document.getElementById('admin-banner-url').value;
             if(service_id && image_url) { 
-                banners.push({ id: Date.now(), service_id: parseInt(service_id), image_url });
-                saveData();
-                document.getElementById('admin-banner-url').value = ''; renderAdmin(); showToast("Banner salvo!");
+                const { data } = await clientSupabase.from('banners').insert([{ service_id: parseInt(service_id), image_url }]).select();
+                if(data) {
+                    banners.push(data[0]);
+                    document.getElementById('admin-banner-url').value = ''; renderAdmin(); showToast("Banner salvo!");
+                }
             }
         }
 
-        function adminDeleteService(id) { services = services.filter(x => x.id !== id); saveData(); renderAdmin(); showToast("Excluído."); }
-        function adminDeleteBanner(id) { banners = banners.filter(x => x.id !== id); saveData(); renderAdmin(); showToast("Banner excluído."); }
-        function adminDeleteCategory(id) { categories = categories.filter(x => x.id !== id); saveData(); renderAdmin(); showToast("Categoria excluída."); }
+        async function adminDeleteService(id) { 
+            await clientSupabase.from('services').delete().eq('id', id);
+            services = services.filter(x => x.id !== id); renderAdmin(); showToast("Excluído do Banco."); 
+        }
+        async function adminDeleteBanner(id) { 
+            await clientSupabase.from('banners').delete().eq('id', id);
+            banners = banners.filter(x => x.id !== id); renderAdmin(); showToast("Banner excluído."); 
+        }
+        async function adminDeleteCategory(id) { 
+            await clientSupabase.from('categories').delete().eq('id', id);
+            categories = categories.filter(x => x.id !== id); renderAdmin(); showToast("Categoria excluída."); 
+        }
 
         // --- ARRANQUE DO APLICATIVO ---
         window.onload = function() {
@@ -834,7 +900,7 @@
                 let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
                 e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
             });
-            loadData();
+            fetchAllData();
         };
 
         // --- IDIOMAS ---
