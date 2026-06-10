@@ -297,7 +297,7 @@
         const supabaseUrl = 'https://kbldhejhvlxylusyboyc.supabase.co';
         
         // COLE SUA CHAVE LONGA (LEGACY) ABAIXO:
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtibGRoZWpodmx4eWx1c3lib3ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjk0NTEsImV4cCI6MjA5NjYwNTQ1MX0.WEWNNEdcWqU7cKcVEZ3bApUD7M0Cf5Q1y_1zgZW2DNg'; 
+        const supabaseKey = 'SUA_CHAVE_LONGA_AQUI'; 
         
         let clientSupabase = null;
         let isOnline = false;
@@ -328,7 +328,7 @@
         ];
 
         async function fetchAllData() {
-            if (!clientSupabase || supabaseKey.includes('SUA_CHAVE')) return activateOfflineMode("Chave ainda não configurada no HTML.");
+            if (!clientSupabase || supabaseKey.includes('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtibGRoZWpodmx4eWx1c3lib3ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjk0NTEsImV4cCI6MjA5NjYwNTQ1MX0.WEWNNEdcWqU7cKcVEZ3bApUD7M0Cf5Q1y_1zgZW2DNg')) return activateOfflineMode("Chave ainda não configurada no HTML.");
             
             try {
                 const { data: catCheck, error: errCheck } = await clientSupabase.from('categories').select('*');
@@ -376,7 +376,6 @@
             document.getElementById('add-category').innerHTML = '<option disabled selected>Selecione...</option>' + categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
             renderHome(); startBannerRotation();
 
-            // SISTEMA DE LINK DIRETO (DEEP LINK)
             const urlParams = new URLSearchParams(window.location.search);
             const serviceId = urlParams.get('id');
             if (serviceId) {
@@ -397,14 +396,14 @@
         function showToast(msg) { const c = document.getElementById('toast-container'); const t = document.createElement('div'); t.className = 'bg-slate-800 text-white px-4 py-3 rounded-xl shadow-lg text-sm font-medium animate-[toastSlide_0.3s_ease-out]'; t.innerHTML = msg; c.appendChild(t); setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(), 300); }, 3000); }
         
         function navigate(viewId) { 
-            clearInterval(galleryInterval); // Para a galeria ao sair do perfil
+            clearInterval(galleryInterval); 
             document.querySelectorAll('main > div').forEach(el => el.classList.add('hidden')); 
             const v = document.getElementById(`view-${viewId}`); 
             if(v) { v.classList.remove('hidden'); v.classList.add('block'); } 
             currentView = viewId; 
             window.scrollTo(0,0); 
             if(viewId === 'home') { 
-                window.history.replaceState({}, document.title, window.location.pathname); // Limpa o ?id= da URL
+                window.history.replaceState({}, document.title, window.location.pathname); 
                 renderHome(); startBannerRotation(); 
             } else { stopBannerRotation(); } 
         }
@@ -453,7 +452,6 @@
             if(s.tier === 'vip' && s.gallery && s.gallery.length > 0) { 
                 cover.innerHTML = `<div id="vip-gallery" class="flex h-full w-full overflow-x-auto gallery-snap no-scrollbar scroll-smooth">${s.gallery.map(url => `<div class="w-full h-full flex-shrink-0 relative"><img src="${url}" class="w-full h-full object-cover"></div>`).join('')}</div>`; 
                 
-                // MOTOR DA GALERIA CORRIGIDO (COM ATRASO PARA RENDERIZAÇÃO)
                 setTimeout(() => {
                     const g = document.getElementById('vip-gallery');
                     if(g) {
@@ -473,7 +471,6 @@
             document.getElementById('detail-category').textContent = s.category; document.getElementById('detail-rating').textContent = s.rating ? s.rating.toFixed(1) : '0.0'; document.getElementById('detail-desc').textContent = s.description;
             document.getElementById('detail-address-container').style.display = s.address ? 'flex' : 'none'; document.getElementById('detail-address').textContent = s.address || '';
             
-            // NOVO TEXTO INTELIGENTE DO WHATSAPP AQUI
             document.getElementById('btn-whatsapp').onclick = () => window.open(`https://wa.me/${s.whatsapp}?text=${encodeURIComponent(`Olá, ${s.name}! Cheguei aqui pelo PREÁpp e preciso de atendimento.`)}`, '_blank');
             
             const btnMaps = document.getElementById('btn-maps'); 
@@ -527,11 +524,27 @@
         async function submitReview(e) {
             e.preventDefault();
             const newRev = { service_id: activeServiceId, name: document.getElementById('rev-name').value, rating: parseInt(document.getElementById('rev-stars').value), text: document.getElementById('rev-comment').value };
+            
+            let savedRev = newRev;
             if(isOnline) {
                 const { data } = await clientSupabase.from('reviews').insert([newRev]).select();
-                if(data) reviews.unshift(data[0]);
-            } else { newRev.id = Date.now(); reviews.unshift(newRev); }
-            document.getElementById('form-review').reset(); openService(activeServiceId); showToast('Avaliação enviada!');
+                if(data) savedRev = data[0];
+            } else { 
+                savedRev.id = Date.now(); 
+            }
+            reviews.unshift(savedRev);
+
+            // --- CÁLCULO IMEDIATO DA NOTA ---
+            const s = services.find(x => x.id === activeServiceId);
+            if (s) {
+                const sRevs = reviews.filter(r => r.service_id === activeServiceId);
+                s.rating = sRevs.reduce((acc, r) => acc + r.rating, 0) / sRevs.length;
+                s.reviews_count = sRevs.length;
+                if(isOnline) await clientSupabase.from('services').update({ rating: s.rating, reviews_count: s.reviews_count }).eq('id', activeServiceId);
+                localStorage.setItem('bkp_srv', JSON.stringify(services));
+            }
+
+            document.getElementById('form-review').reset(); openService(activeServiceId); showToast('Avaliação enviada com sucesso!');
         }
 
         function loginAdmin() { if(document.getElementById('admin-pwd').value === '#Bb0991%2704@') { document.getElementById('admin-login').classList.add('hidden'); document.getElementById('admin-dashboard').classList.remove('hidden'); renderAdmin(); } else showToast("Senha incorreta!"); }
