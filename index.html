@@ -297,7 +297,7 @@
         const supabaseUrl = 'https://kbldhejhvlxylusyboyc.supabase.co';
         
         // COLE SUA CHAVE LONGA (LEGACY) ABAIXO:
-        const supabaseKey = 'SUA_CHAVE_LONGA_AQUI'; 
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtibGRoZWpodmx4eWx1c3lib3ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjk0NTEsImV4cCI6MjA5NjYwNTQ1MX0.WEWNNEdcWqU7cKcVEZ3bApUD7M0Cf5Q1y_1zgZW2DNg'; 
         
         let clientSupabase = null;
         let isOnline = false;
@@ -328,7 +328,7 @@
         ];
 
         async function fetchAllData() {
-            if (!clientSupabase || supabaseKey.includes('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtibGRoZWpodmx4eWx1c3lib3ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjk0NTEsImV4cCI6MjA5NjYwNTQ1MX0.WEWNNEdcWqU7cKcVEZ3bApUD7M0Cf5Q1y_1zgZW2DNg')) return activateOfflineMode("Chave ainda não configurada no HTML.");
+            if (!clientSupabase || supabaseKey.includes('SUA_CHAVE')) return activateOfflineMode("Chave ainda não configurada no HTML.");
             
             try {
                 const { data: catCheck, error: errCheck } = await clientSupabase.from('categories').select('*');
