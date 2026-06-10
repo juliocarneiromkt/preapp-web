@@ -305,7 +305,9 @@
     </main>
 
     <div id="modal-install" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex-col justify-end"><div class="bg-white rounded-t-3xl p-6 shadow-2xl animate-slide-up max-w-md mx-auto w-full"><div class="flex justify-between items-start mb-4"><h3 class="text-xl font-bold text-slate-800">Instalar App</h3><button onclick="hideInstallModal()"><i class="ph ph-x text-2xl"></i></button></div><button onclick="hideInstallModal()" class="w-full bg-slate-200 text-slate-800 font-bold py-3 rounded-xl mt-4">Entendi</button></div></div>
+    
     <div id="modal-payment" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex-col justify-end"><div class="bg-white rounded-t-3xl p-6 shadow-2xl animate-slide-up max-w-md mx-auto w-full"><h3 class="text-2xl font-bold text-center mb-6">Checkout VIP</h3><button onclick="confirmPaymentSimulation()" class="w-full bg-slate-800 text-white font-bold py-4 rounded-xl shadow-md mb-3">Simular Pagamento</button><button onclick="cancelPaymentSimulation()" class="w-full text-slate-500 font-bold py-3 rounded-xl">Cancelar</button></div></div>
+    
     <div id="toast-container" class="fixed bottom-4 left-1/2 -translate-x-1/2 w-max max-w-[90vw] z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <div id="modal-admin-edit" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex-col justify-center p-4">
@@ -345,6 +347,8 @@
     <script>
         const { createClient } = supabase;
         const supabaseUrl = 'https://kbldhejhvlxylusyboyc.supabase.co';
+        
+        // COLE SUA CHAVE LONGA (LEGACY) ABAIXO:
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtibGRoZWpodmx4eWx1c3lib3ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjk0NTEsImV4cCI6MjA5NjYwNTQ1MX0.WEWNNEdcWqU7cKcVEZ3bApUD7M0Cf5Q1y_1zgZW2DNg'; 
         
         let clientSupabase = null;
@@ -545,6 +549,25 @@
             };
             
             document.getElementById('reviews-list').innerHTML = reviews.filter(r => r.service_id === id).map(r => `<div class="bg-white border border-slate-100 p-4 rounded-xl shadow-sm"><div class="flex justify-between items-center mb-2"><span class="font-bold text-sm">${r.name}</span><span class="text-amber-500 text-xs">${'⭐'.repeat(r.rating)}</span></div><p class="text-slate-600 text-sm">${r.text}</p></div>`).join('') || `<p class="text-sm text-center py-4 bg-slate-50 text-slate-400 rounded-lg">Sem avaliações ainda.</p>`;
+            
+            // --- BLOQUEIO DE AVALIAÇÃO DUPLA (NÍVEL 1) ---
+            let reviewed = JSON.parse(localStorage.getItem('reviewed_services') || '[]');
+            const formReview = document.getElementById('form-review');
+            const existingMsg = document.getElementById('msg-already-reviewed');
+            if(existingMsg) existingMsg.remove();
+            
+            if(reviewed.includes(id)) {
+                formReview.style.display = 'none';
+                const msg = document.createElement('div');
+                msg.id = 'msg-already-reviewed';
+                msg.className = 'text-center text-sm text-slate-500 py-3 font-medium';
+                msg.innerHTML = 'Você já avaliou esta empresa. Obrigado! 💙';
+                formReview.parentElement.appendChild(msg);
+            } else {
+                formReview.style.display = 'flex';
+            }
+            // ----------------------------------------------
+
             navigate('profile');
         }
 
@@ -601,6 +624,14 @@
                 }
                 localStorage.setItem('bkp_srv', JSON.stringify(services));
             }
+
+            // --- BLOQUEIO DE AVALIAÇÃO DUPLA (NÍVEL 1) ---
+            let reviewed = JSON.parse(localStorage.getItem('reviewed_services') || '[]');
+            if(!reviewed.includes(activeServiceId)) {
+                reviewed.push(activeServiceId);
+                localStorage.setItem('reviewed_services', JSON.stringify(reviewed));
+            }
+            // ----------------------------------------------
 
             document.getElementById('form-review').reset(); openService(activeServiceId); showToast('Avaliação enviada com sucesso!');
         }
@@ -689,7 +720,7 @@
             closeAdminEditModal();
             renderAdmin();
             if(currentView === 'home') renderHome();
-            showToast("Empresa updated com sucesso!");
+            showToast("Empresa atualizada com sucesso!");
         }
 
         async function adminDeleteReview(id) {
