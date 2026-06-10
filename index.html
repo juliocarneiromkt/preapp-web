@@ -347,6 +347,17 @@
                 categories = cats.data || []; services = srvs.data || [];
                 reviews = revs.data || []; banners = bans.data || [];
 
+                // ==========================================
+                // BLINDAGEM DE NOTAS: RECÁLCULO DINÂMICO
+                // Isso garante que a nota exata seja calculada ao vivo,
+                // ignorando erros de tipagem do banco de dados antigo.
+                // ==========================================
+                services.forEach(s => {
+                    const sRevs = reviews.filter(r => r.service_id === s.id);
+                    s.rating = sRevs.length > 0 ? (sRevs.reduce((acc, r) => acc + Number(r.rating), 0) / sRevs.length) : 0;
+                    s.reviews_count = sRevs.length;
+                });
+
                 localStorage.setItem('bkp_cat', JSON.stringify(categories));
                 localStorage.setItem('bkp_srv', JSON.stringify(services));
                 
@@ -436,7 +447,9 @@
             
             document.getElementById('services-list').innerHTML = filtered.map(s => {
                 const c = categories.find(cat => cat.name === s.category) || {color: 'bg-slate-100 text-slate-500'};
-                return `<div onclick="openService(${s.id})" class="bg-white rounded-2xl p-4 shadow-sm border ${s.tier==='vip'?'border-amber-200':'border-slate-100'} relative cursor-pointer">${s.tier==='vip' ? `<div class="absolute -top-3 -right-2 bg-amber-400 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white"><i class="ph-fill ph-crown"></i></div>`:''}<div class="flex justify-between items-start mb-2"><span class="text-[10px] font-bold uppercase ${c.color} px-2 py-1 rounded-md">${s.category}</span><div class="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg"><i class="ph-fill ph-star text-amber-500 text-sm"></i><span class="font-bold text-sm">${s.rating ? s.rating.toFixed(1) : '0.0'}</span></div></div><h3 class="font-bold text-lg leading-tight mb-1">${s.name}</h3><p class="text-sm text-slate-500 line-clamp-2 leading-snug">${s.description}</p></div>`;
+                // BLINDAGEM DE RENDERIZAÇÃO
+                const displayRating = s.rating ? Number(s.rating).toFixed(1) : '0.0';
+                return `<div onclick="openService(${s.id})" class="bg-white rounded-2xl p-4 shadow-sm border ${s.tier==='vip'?'border-amber-200':'border-slate-100'} relative cursor-pointer">${s.tier==='vip' ? `<div class="absolute -top-3 -right-2 bg-amber-400 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white"><i class="ph-fill ph-crown"></i></div>`:''}<div class="flex justify-between items-start mb-2"><span class="text-[10px] font-bold uppercase ${c.color} px-2 py-1 rounded-md">${s.category}</span><div class="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg"><i class="ph-fill ph-star text-amber-500 text-sm"></i><span class="font-bold text-sm">${displayRating}</span></div></div><h3 class="font-bold text-lg leading-tight mb-1">${s.name}</h3><p class="text-sm text-slate-500 line-clamp-2 leading-snug">${s.description}</p></div>`;
             }).join('') || `<div class="text-center py-10 text-slate-400">Nenhum resultado.</div>`;
         }
 
@@ -468,7 +481,12 @@
             else { const c = categories.find(cat => cat.name === s.category) || {color: 'bg-slate-100 text-slate-500', icon: 'ph-star'}; cover.innerHTML = `<div class="w-full h-full ${c.color.split(' ')[0]} flex items-center justify-center"><i class="ph-fill ${c.icon} text-7xl opacity-20"></i></div>`; }
 
             document.getElementById('detail-name').innerHTML = s.name + (s.tier==='vip'?' <i class="ph-fill ph-crown text-amber-500 text-xl"></i>':'');
-            document.getElementById('detail-category').textContent = s.category; document.getElementById('detail-rating').textContent = s.rating ? s.rating.toFixed(1) : '0.0'; document.getElementById('detail-desc').textContent = s.description;
+            document.getElementById('detail-category').textContent = s.category; 
+            
+            // BLINDAGEM DE RENDERIZAÇÃO
+            document.getElementById('detail-rating').textContent = s.rating ? Number(s.rating).toFixed(1) : '0.0'; 
+            
+            document.getElementById('detail-desc').textContent = s.description;
             document.getElementById('detail-address-container').style.display = s.address ? 'flex' : 'none'; document.getElementById('detail-address').textContent = s.address || '';
             
             document.getElementById('btn-whatsapp').onclick = () => window.open(`https://wa.me/${s.whatsapp}?text=${encodeURIComponent(`Olá, ${s.name}! Cheguei aqui pelo PREÁpp e preciso de atendimento.`)}`, '_blank');
@@ -534,13 +552,19 @@
             }
             reviews.unshift(savedRev);
 
-            // --- CÁLCULO IMEDIATO DA NOTA ---
+            // ==========================================
+            // ATUALIZADOR E CALCULADOR INSTANTÂNEO DE NOTA
+            // ==========================================
             const s = services.find(x => x.id === activeServiceId);
             if (s) {
                 const sRevs = reviews.filter(r => r.service_id === activeServiceId);
-                s.rating = sRevs.reduce((acc, r) => acc + r.rating, 0) / sRevs.length;
+                s.rating = sRevs.reduce((acc, r) => acc + Number(r.rating), 0) / sRevs.length;
                 s.reviews_count = sRevs.length;
-                if(isOnline) await clientSupabase.from('services').update({ rating: s.rating, reviews_count: s.reviews_count }).eq('id', activeServiceId);
+                
+                // Grava silenciosamente a média no banco de dados para os próximos visitantes
+                if(isOnline) {
+                    clientSupabase.from('services').update({ rating: s.rating, reviews_count: s.reviews_count }).eq('id', activeServiceId).then();
+                }
                 localStorage.setItem('bkp_srv', JSON.stringify(services));
             }
 
