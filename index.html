@@ -260,6 +260,11 @@
                         <button onclick="adminSubmitNewService()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg mt-2 shadow-lg transition">Publicar Perfil Direto</button>
                     </div>
                 </div>
+                
+                <div class="bg-slate-800 rounded-xl p-4 mb-6">
+                    <h3 class="font-bold text-white mb-4"><i class="ph-fill ph-chat-teardrop-text"></i> Avaliações (Moderação)</h3>
+                    <div id="admin-reviews-list" class="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1 no-scrollbar"></div>
+                </div>
 
                 <div class="bg-slate-800 rounded-xl p-4 mb-6">
                     <h3 class="font-bold text-white mb-4"><i class="ph-fill ph-image"></i> Banners</h3>
@@ -289,8 +294,44 @@
     </main>
 
     <div id="modal-install" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex-col justify-end"><div class="bg-white rounded-t-3xl p-6 shadow-2xl animate-slide-up max-w-md mx-auto w-full"><div class="flex justify-between items-start mb-4"><h3 class="text-xl font-bold text-slate-800">Instalar App</h3><button onclick="hideInstallModal()"><i class="ph ph-x text-2xl"></i></button></div><button onclick="hideInstallModal()" class="w-full bg-slate-200 text-slate-800 font-bold py-3 rounded-xl mt-4">Entendi</button></div></div>
+    
     <div id="modal-payment" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex-col justify-end"><div class="bg-white rounded-t-3xl p-6 shadow-2xl animate-slide-up max-w-md mx-auto w-full"><h3 class="text-2xl font-bold text-center mb-6">Checkout VIP</h3><button onclick="confirmPaymentSimulation()" class="w-full bg-slate-800 text-white font-bold py-4 rounded-xl shadow-md mb-3">Simular Pagamento</button><button onclick="cancelPaymentSimulation()" class="w-full text-slate-500 font-bold py-3 rounded-xl">Cancelar</button></div></div>
+    
     <div id="toast-container" class="fixed bottom-4 left-1/2 -translate-x-1/2 w-max max-w-[90vw] z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <div id="modal-admin-edit" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex-col justify-center p-4">
+        <div class="bg-slate-800 rounded-2xl p-5 shadow-2xl w-full max-w-md mx-auto max-h-[90vh] overflow-y-auto border border-slate-600">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-white">Editar Empresa</h3>
+                <button onclick="closeAdminEditModal()" class="text-slate-400 hover:text-white"><i class="ph ph-x text-2xl"></i></button>
+            </div>
+            <div class="flex flex-col gap-3 text-sm">
+                <input type="hidden" id="edit-srv-id">
+                <input type="text" id="edit-srv-name" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white" placeholder="Nome">
+                <select id="edit-srv-category" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"></select>
+                <input type="tel" id="edit-srv-whatsapp" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white" placeholder="WhatsApp Ex: (88) 99999-9999">
+                <input type="text" id="edit-srv-address" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white" placeholder="Endereço">
+                <textarea id="edit-srv-desc" rows="3" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white" placeholder="Descrição"></textarea>
+                
+                <div class="flex gap-4 items-center bg-slate-700 p-2 rounded-lg border border-slate-600">
+                    <span class="text-slate-300 font-bold">Plano:</span>
+                    <label class="flex items-center gap-1 text-white cursor-pointer"><input type="radio" name="editPlanType" value="free" onchange="toggleEditGallery()"> Free</label>
+                    <label class="flex items-center gap-1 text-amber-400 cursor-pointer font-bold"><input type="radio" name="editPlanType" value="vip" onchange="toggleEditGallery()"> VIP 👑</label>
+                </div>
+
+                <div id="edit-upload-section" class="hidden flex-col gap-3 bg-slate-700/50 p-3 rounded-lg border border-amber-500/30">
+                    <input type="text" id="edit-srv-instagram" placeholder="Instagram (sem @)" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none">
+                    <div>
+                        <div class="text-xs text-amber-400 mb-1 font-bold">Substituir Fotos VIP (Até 5):</div>
+                        <input type="file" id="edit-srv-gallery" multiple accept="image/*" class="w-full text-xs text-slate-300 file:bg-amber-600 file:hover:bg-amber-500 file:text-white file:border-0 file:px-3 file:py-1 file:rounded cursor-pointer">
+                        <div class="text-[10px] text-slate-400 mt-1">*Deixe vazio para manter as fotos atuais</div>
+                    </div>
+                </div>
+
+                <button onclick="adminSaveEditService()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg mt-2 shadow-lg transition">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         const { createClient } = supabase;
@@ -347,11 +388,6 @@
                 categories = cats.data || []; services = srvs.data || [];
                 reviews = revs.data || []; banners = bans.data || [];
 
-                // ==========================================
-                // BLINDAGEM DE NOTAS: RECÁLCULO DINÂMICO
-                // Isso garante que a nota exata seja calculada ao vivo,
-                // ignorando erros de tipagem do banco de dados antigo.
-                // ==========================================
                 services.forEach(s => {
                     const sRevs = reviews.filter(r => r.service_id === s.id);
                     s.rating = sRevs.length > 0 ? (sRevs.reduce((acc, r) => acc + Number(r.rating), 0) / sRevs.length) : 0;
@@ -447,7 +483,6 @@
             
             document.getElementById('services-list').innerHTML = filtered.map(s => {
                 const c = categories.find(cat => cat.name === s.category) || {color: 'bg-slate-100 text-slate-500'};
-                // BLINDAGEM DE RENDERIZAÇÃO
                 const displayRating = s.rating ? Number(s.rating).toFixed(1) : '0.0';
                 return `<div onclick="openService(${s.id})" class="bg-white rounded-2xl p-4 shadow-sm border ${s.tier==='vip'?'border-amber-200':'border-slate-100'} relative cursor-pointer">${s.tier==='vip' ? `<div class="absolute -top-3 -right-2 bg-amber-400 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white"><i class="ph-fill ph-crown"></i></div>`:''}<div class="flex justify-between items-start mb-2"><span class="text-[10px] font-bold uppercase ${c.color} px-2 py-1 rounded-md">${s.category}</span><div class="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg"><i class="ph-fill ph-star text-amber-500 text-sm"></i><span class="font-bold text-sm">${displayRating}</span></div></div><h3 class="font-bold text-lg leading-tight mb-1">${s.name}</h3><p class="text-sm text-slate-500 line-clamp-2 leading-snug">${s.description}</p></div>`;
             }).join('') || `<div class="text-center py-10 text-slate-400">Nenhum resultado.</div>`;
@@ -482,10 +517,7 @@
 
             document.getElementById('detail-name').innerHTML = s.name + (s.tier==='vip'?' <i class="ph-fill ph-crown text-amber-500 text-xl"></i>':'');
             document.getElementById('detail-category').textContent = s.category; 
-            
-            // BLINDAGEM DE RENDERIZAÇÃO
             document.getElementById('detail-rating').textContent = s.rating ? Number(s.rating).toFixed(1) : '0.0'; 
-            
             document.getElementById('detail-desc').textContent = s.description;
             document.getElementById('detail-address-container').style.display = s.address ? 'flex' : 'none'; document.getElementById('detail-address').textContent = s.address || '';
             
@@ -552,16 +584,11 @@
             }
             reviews.unshift(savedRev);
 
-            // ==========================================
-            // ATUALIZADOR E CALCULADOR INSTANTÂNEO DE NOTA
-            // ==========================================
             const s = services.find(x => x.id === activeServiceId);
             if (s) {
                 const sRevs = reviews.filter(r => r.service_id === activeServiceId);
                 s.rating = sRevs.reduce((acc, r) => acc + Number(r.rating), 0) / sRevs.length;
                 s.reviews_count = sRevs.length;
-                
-                // Grava silenciosamente a média no banco de dados para os próximos visitantes
                 if(isOnline) {
                     clientSupabase.from('services').update({ rating: s.rating, reviews_count: s.reviews_count }).eq('id', activeServiceId).then();
                 }
@@ -571,16 +598,117 @@
             document.getElementById('form-review').reset(); openService(activeServiceId); showToast('Avaliação enviada com sucesso!');
         }
 
+        // --- SISTEMA ADMINISTRATIVO ---
         function loginAdmin() { if(document.getElementById('admin-pwd').value === '#Bb0991%2704@') { document.getElementById('admin-login').classList.add('hidden'); document.getElementById('admin-dashboard').classList.remove('hidden'); renderAdmin(); } else showToast("Senha incorreta!"); }
         
         function renderAdmin() {
             document.getElementById('admin-db-status').innerHTML = isOnline ? '<span class="text-green-400">● Conectado ao Supabase</span>' : '<span class="text-red-400">● MODO OFFLINE (Sem Nuvem)</span>';
-            document.getElementById('admin-services-list').innerHTML = services.map(s => `<div class="bg-slate-700 p-3 rounded flex justify-between items-center border border-slate-600 mb-2"><div><div class="font-bold">${s.name} ${s.tier==='vip'?'👑':''}</div><div class="text-xs text-slate-400">${s.category}</div></div><button onclick="adminDeleteService(${s.id})" class="text-red-400 p-1"><i class="ph-fill ph-trash text-lg"></i></button></div>`).join('');
             
+            // LISTA DE EMPRESAS COM BOTÃO DE EDITAR
+            document.getElementById('admin-services-list').innerHTML = services.map(s => `<div class="bg-slate-700 p-3 rounded flex justify-between items-center border border-slate-600 mb-2"><div><div class="font-bold">${s.name} ${s.tier==='vip'?'👑':''}</div><div class="text-xs text-slate-400">${s.category}</div></div><div class="flex gap-2"><button onclick="adminOpenEditService(${s.id})" class="text-blue-400 p-1 bg-slate-600 rounded hover:bg-slate-500"><i class="ph-fill ph-pencil-simple text-lg"></i></button><button onclick="adminDeleteService(${s.id})" class="text-red-400 p-1 bg-slate-600 rounded hover:bg-slate-500"><i class="ph-fill ph-trash text-lg"></i></button></div></div>`).join('');
+            
+            // MODERAÇÃO DE AVALIAÇÕES (NOVO)
+            document.getElementById('admin-reviews-list').innerHTML = reviews.map(r => {
+                const sName = services.find(x => x.id === r.service_id)?.name || 'Empresa Deletada';
+                return `<div class="bg-slate-700 p-3 rounded border border-slate-600 mb-2"><div class="flex justify-between items-start mb-1"><div><span class="font-bold text-white text-sm">${r.name}</span> <span class="text-xs text-amber-400">${'⭐'.repeat(r.rating)}</span></div><button onclick="adminDeleteReview(${r.id})" class="text-red-400 p-1 bg-slate-600 rounded hover:bg-slate-500"><i class="ph-fill ph-trash text-lg"></i></button></div><div class="text-[10px] text-slate-400 mb-1">Negócio: ${sName}</div><div class="text-xs text-slate-300 italic">"${r.text}"</div></div>`;
+            }).join('') || '<p class="text-xs text-slate-400">Nenhuma avaliação encontrada.</p>';
+
             document.getElementById('admin-add-category').innerHTML = '<option value="" disabled selected>Selecione a Categoria...</option>' + categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
             document.getElementById('admin-banner-service').innerHTML = '<option disabled selected>Vincular a qual empresa?</option>' + services.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
             document.getElementById('admin-banner-list').innerHTML = banners.map(b => `<div class="flex justify-between items-center bg-slate-700 p-2 rounded mb-1 text-xs border border-slate-600">ID ${b.service_id} <button onclick="adminDeleteBanner(${b.id})" class="text-red-400">Excluir</button></div>`).join('');
             document.getElementById('admin-category-list').innerHTML = categories.map(c => `<span class="bg-slate-700 text-xs px-2 py-1 rounded text-slate-200 border border-slate-600">${c.name} <button onclick="adminDeleteCategory(${c.id})" class="ml-2 text-red-400 font-bold">x</button></span>`).join('');
+            
+            // Popula também as categorias do modal de edição
+            const editCatSelect = document.getElementById('edit-srv-category');
+            if (editCatSelect) editCatSelect.innerHTML = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        }
+
+        // --- SISTEMA DE EDIÇÃO DE EMPRESAS ---
+        function adminOpenEditService(id) {
+            const s = services.find(x => x.id === id);
+            if(!s) return;
+            document.getElementById('edit-srv-id').value = s.id;
+            document.getElementById('edit-srv-name').value = s.name;
+            document.getElementById('edit-srv-category').value = s.category;
+            
+            let phone = s.whatsapp || "";
+            if(phone.startsWith('55') && phone.length >= 12) phone = phone.substring(2);
+            let x = phone.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
+            if(x) document.getElementById('edit-srv-whatsapp').value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
+            else document.getElementById('edit-srv-whatsapp').value = phone;
+
+            document.getElementById('edit-srv-address').value = s.address || '';
+            document.getElementById('edit-srv-desc').value = s.description || '';
+            document.querySelector(`input[name="editPlanType"][value="${s.tier}"]`).checked = true;
+            document.getElementById('edit-srv-instagram').value = s.instagram || '';
+            
+            toggleEditGallery();
+            document.getElementById('modal-admin-edit').classList.replace('hidden', 'flex');
+        }
+
+        function closeAdminEditModal() { document.getElementById('modal-admin-edit').classList.replace('flex', 'hidden'); }
+        
+        function toggleEditGallery() { const isVip = document.querySelector('input[name="editPlanType"]:checked').value === 'vip'; const s = document.getElementById('edit-upload-section'); isVip ? (s.classList.remove('hidden'), s.classList.add('flex')) : (s.classList.add('hidden'), s.classList.remove('flex')); }
+
+        async function adminSaveEditService() {
+            const id = parseInt(document.getElementById('edit-srv-id').value);
+            const name = document.getElementById('edit-srv-name').value, category = document.getElementById('edit-srv-category').value, address = document.getElementById('edit-srv-address').value, description = document.getElementById('edit-srv-desc').value;
+            
+            const phoneVal = document.getElementById('edit-srv-whatsapp').value.replace(/\D/g, '');
+            if(phoneVal.length < 10) return showToast("Digite um WhatsApp válido com DDD (ex: 88 99999-9999)!");
+            const finalWhatsapp = '55' + phoneVal;
+
+            if(!name || !category || !description) return showToast("Preencha os campos obrigatórios!");
+            const tier = document.querySelector('input[name="editPlanType"]:checked').value;
+            
+            const sIndex = services.findIndex(x => x.id === id);
+            if(sIndex === -1) return;
+            let currentService = services[sIndex];
+
+            let gal = currentService.gallery || []; 
+            if(tier === 'vip') {
+                const files = document.getElementById('edit-srv-gallery').files;
+                if(files.length > 0) {
+                    gal = [];
+                    for(let i=0; i<Math.min(files.length, 5); i++) gal.push(await toBase64(files[i]));
+                }
+            } else { gal = []; }
+
+            const updatedData = { name, category, whatsapp: finalWhatsapp, address, description, tier, instagram: tier === 'vip' ? document.getElementById('edit-srv-instagram').value.replace('@','') : '', gallery: gal };
+
+            if(isOnline) {
+                const { error } = await clientSupabase.from('services').update(updatedData).eq('id', id);
+                if(error) return showToast("Erro: " + error.message);
+            }
+
+            services[sIndex] = { ...currentService, ...updatedData };
+            localStorage.setItem('bkp_srv', JSON.stringify(services));
+            
+            closeAdminEditModal();
+            renderAdmin();
+            if(currentView === 'home') renderHome();
+            showToast("Empresa atualizada com sucesso!");
+        }
+
+        // --- SISTEMA DE EXCLUSÃO DE AVALIAÇÕES OFENSIVAS ---
+        async function adminDeleteReview(id) {
+            const rev = reviews.find(r => r.id === id);
+            if(!rev) return;
+            
+            if(isOnline) await clientSupabase.from('reviews').delete().eq('id', id);
+            reviews = reviews.filter(x => x.id !== id);
+            
+            // Recalcula a nota da empresa após apagar o comentário!
+            const s = services.find(x => x.id === rev.service_id);
+            if (s) {
+                const sRevs = reviews.filter(r => r.service_id === s.id);
+                s.rating = sRevs.length > 0 ? (sRevs.reduce((acc, r) => acc + Number(r.rating), 0) / sRevs.length) : 0;
+                s.reviews_count = sRevs.length;
+                if(isOnline) clientSupabase.from('services').update({ rating: s.rating, reviews_count: s.reviews_count }).eq('id', s.id).then();
+                localStorage.setItem('bkp_srv', JSON.stringify(services));
+            }
+            renderAdmin();
+            showToast("Avaliação removida e média recalculada!");
         }
 
         function toggleAdminGallery() { const isVip = document.querySelector('input[name="adminPlanType"]:checked').value === 'vip'; const s = document.getElementById('admin-upload-section'); isVip ? (s.classList.remove('hidden'), s.classList.add('flex')) : (s.classList.add('hidden'), s.classList.remove('flex')); }
@@ -631,6 +759,7 @@
             const maskPhone = function (e) { let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/); e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : ''); };
             document.getElementById('add-whatsapp').addEventListener('input', maskPhone);
             document.getElementById('admin-add-whatsapp').addEventListener('input', maskPhone);
+            document.getElementById('edit-srv-whatsapp').addEventListener('input', maskPhone);
             fetchAllData();
         };
 
