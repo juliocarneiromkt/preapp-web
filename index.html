@@ -134,6 +134,7 @@
 
                 <div class="flex flex-col gap-3 mb-8">
                     <button id="btn-whatsapp" class="w-full bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold py-3.5 rounded-xl shadow-lg flex justify-center items-center gap-2 transition active:scale-95"><i class="ph-fill ph-whatsapp text-2xl"></i> Chamar no WhatsApp</button>
+                    <button id="btn-maps" class="hidden w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-3.5 rounded-xl shadow-sm justify-center items-center gap-2 transition active:scale-95"><i class="ph-fill ph-map-pin text-2xl"></i> Como Chegar</button>
                     <button id="btn-instagram" class="hidden w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white font-bold py-3.5 rounded-xl shadow-lg justify-center items-center gap-2 transition active:scale-95"><i class="ph-fill ph-instagram-logo text-2xl"></i> Ver no Instagram</button>
                     <button id="btn-share" class="hidden w-full bg-slate-100 text-slate-700 font-bold py-3.5 rounded-xl justify-center items-center gap-2 transition active:scale-95"><i class="ph-bold ph-share-network text-xl"></i> Compartilhar Perfil</button>
                 </div>
@@ -171,20 +172,42 @@
                         <label class="block text-sm font-medium text-slate-700 mb-2">Plano</label>
                         <div class="grid grid-cols-2 gap-3 h-24">
                             <label class="cursor-pointer relative"><input type="radio" name="planType" value="free" class="peer sr-only" checked onchange="toggleGalleryUpload()"><div class="border-2 border-slate-200 rounded-xl p-2 flex flex-col items-center h-full justify-center peer-checked:border-blue-500 peer-checked:bg-blue-50"><span class="font-bold text-slate-700 text-sm">Gratuito</span></div></label>
-                            <label class="cursor-pointer relative"><input type="radio" name="planType" value="vip" class="peer sr-only" onchange="toggleGalleryUpload()"><div class="border-2 border-slate-200 rounded-xl p-2 flex flex-col items-center h-full justify-center peer-checked:border-amber-500 peer-checked:bg-amber-50"><span class="font-bold text-amber-500 flex items-center gap-1"><i class="ph-fill ph-crown text-lg"></i> VIP</span></div></label>
+                            <label class="cursor-pointer relative"><input type="radio" name="planType" value="vip" class="peer sr-only" onchange="toggleGalleryUpload()"><div class="border-2 border-slate-200 rounded-xl p-2 flex flex-col items-center h-full justify-center peer-checked:border-amber-500 peer-checked:bg-amber-50"><span class="font-bold text-amber-500 flex items-center gap-1"><i class="ph-fill ph-crown text-lg"></i> VIP</span><span class="text-[10px] font-bold text-slate-800 mt-1">A partir de R$ 14,90/mês</span></div></label>
                         </div>
                     </div>
                     <div id="upload-gallery-section" class="hidden bg-amber-50 border border-amber-200 p-4 rounded-xl flex-col gap-4">
-                        <div class="flex gap-2">
-                            <label class="flex-1 cursor-pointer"><input type="radio" name="billingCycle" value="anual" class="peer sr-only" checked><div class="border border-amber-200 rounded-lg p-2 text-center peer-checked:bg-amber-500 peer-checked:text-white bg-white"><div class="font-bold text-sm">Anual</div></div></label>
-                            <label class="flex-1 cursor-pointer"><input type="radio" name="billingCycle" value="mensal" class="peer sr-only"><div class="border border-amber-200 rounded-lg p-2 text-center peer-checked:bg-amber-500 peer-checked:text-white bg-white"><div class="font-bold text-sm">Mensal</div></div></label>
+                        <div class="flex flex-col gap-2">
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="billingCycle" value="anual" class="peer sr-only" checked>
+                                <div class="border border-amber-200 rounded-lg p-2 flex justify-between items-center peer-checked:bg-amber-500 peer-checked:text-white bg-white shadow-sm">
+                                    <div class="font-bold text-sm">Anual</div>
+                                    <div class="text-xs">12x R$ 29,90</div>
+                                </div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="billingCycle" value="semestral" class="peer sr-only">
+                                <div class="border border-amber-200 rounded-lg p-2 flex justify-between items-center peer-checked:bg-amber-500 peer-checked:text-white bg-white shadow-sm">
+                                    <div class="font-bold text-sm">Semestral</div>
+                                    <div class="text-right">
+                                        <div class="text-xs">6x R$ 14,90</div>
+                                        <div class="text-[9px] font-bold text-amber-600 peer-checked:text-white">Economiza R$ 180,00/ano</div>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="billingCycle" value="mensal" class="peer sr-only">
+                                <div class="border border-amber-200 rounded-lg p-2 flex justify-between items-center peer-checked:bg-amber-500 peer-checked:text-white bg-white shadow-sm">
+                                    <div class="font-bold text-sm">Mensal</div>
+                                    <div class="text-xs">R$ 29,90</div>
+                                </div>
+                            </label>
                         </div>
                         <input type="text" id="add-instagram" placeholder="Seu Instagram (sem @)" class="w-full bg-white border border-amber-300 rounded-lg py-2 px-3">
                         <input type="file" id="add-gallery-files" multiple accept="image/*" class="w-full text-sm text-slate-500">
                     </div>
                     <input type="text" id="add-name" required placeholder="Nome da Empresa *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
                     <select id="add-category" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3"></select>
-                    <input type="tel" id="add-whatsapp" required placeholder="WhatsApp *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                    <input type="tel" id="add-whatsapp" required placeholder="Ex: (88) 99999-9999 *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
                     <input type="text" id="add-address" placeholder="Endereço" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
                     <textarea id="add-desc" rows="3" required placeholder="Descrição *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3"></textarea>
                     <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg mt-4">Publicar Perfil</button>
@@ -216,7 +239,7 @@
                     <div class="flex flex-col gap-3 text-sm">
                         <input type="text" id="admin-add-name" placeholder="Nome da Empresa *" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none">
                         <select id="admin-add-category" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none"></select>
-                        <input type="tel" id="admin-add-whatsapp" placeholder="WhatsApp *" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none">
+                        <input type="tel" id="admin-add-whatsapp" placeholder="WhatsApp Ex: (88) 99999-9999 *" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none">
                         <input type="text" id="admin-add-address" placeholder="Endereço" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none">
                         <textarea id="admin-add-desc" placeholder="Descrição *" rows="2" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none"></textarea>
                         
@@ -282,7 +305,8 @@
         try { clientSupabase = createClient(supabaseUrl, supabaseKey); } 
         catch (e) { console.error("Erro biblioteca Supabase:", e); }
 
-        let currentView = 'home', activeServiceId = null, bannerInterval = null, pendingServiceData = null;
+        // VARIÁVEL NOVA: Motor de auto-play da galeria VIP
+        let currentView = 'home', activeServiceId = null, bannerInterval = null, galleryInterval = null, pendingServiceData = null;
         let categories = [], services = [], reviews = [], banners = [];
 
         const fallbackCategories = [
@@ -365,11 +389,20 @@
 
         const toBase64 = file => new Promise((resolve, reject) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = () => resolve(r.result); r.onerror = e => reject(e); });
         function showToast(msg) { const c = document.getElementById('toast-container'); const t = document.createElement('div'); t.className = 'bg-slate-800 text-white px-4 py-3 rounded-xl shadow-lg text-sm font-medium animate-[toastSlide_0.3s_ease-out]'; t.innerHTML = msg; c.appendChild(t); setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(), 300); }, 3000); }
-        function navigate(viewId) { document.querySelectorAll('main > div').forEach(el => el.classList.add('hidden')); const v = document.getElementById(`view-${viewId}`); if(v) { v.classList.remove('hidden'); v.classList.add('block'); } currentView = viewId; window.scrollTo(0,0); if(viewId === 'home') { renderHome(); startBannerRotation(); } else { stopBannerRotation(); } }
+        
+        function navigate(viewId) { 
+            clearInterval(galleryInterval); // Para a galeria automática se sair do perfil
+            document.querySelectorAll('main > div').forEach(el => el.classList.add('hidden')); 
+            const v = document.getElementById(`view-${viewId}`); 
+            if(v) { v.classList.remove('hidden'); v.classList.add('block'); } 
+            currentView = viewId; 
+            window.scrollTo(0,0); 
+            if(viewId === 'home') { renderHome(); startBannerRotation(); } else { stopBannerRotation(); } 
+        }
+        
         function showInstallModal() { document.getElementById('modal-install').classList.replace('hidden', 'flex'); }
         function hideInstallModal() { document.getElementById('modal-install').classList.replace('flex', 'hidden'); }
         
-        // 2ª ALTERAÇÃO AQUI: A função que dispara o compartilhamento no celular
         function shareApp() { 
             const shareText = 'Prestadores de serviço, alimentação, imóveis, academias, transporte... Tudo o que você precisa no Preá a um click.';
             if (navigator.share) {
@@ -404,23 +437,65 @@
 
         function openService(id) {
             const s = services.find(x => x.id === id); if(!s) return; activeServiceId = id;
+            
+            clearInterval(galleryInterval); // Limpa carrossel anterior
+            
             const cover = document.getElementById('profile-gallery-container');
-            if(s.tier === 'vip' && s.gallery && s.gallery.length > 0) { cover.innerHTML = `<div class="flex h-full w-full overflow-x-auto gallery-snap no-scrollbar">${s.gallery.map(url => `<div class="w-full h-full flex-shrink-0 relative"><img src="${url}" class="w-full h-full object-cover"></div>`).join('')}</div>`; } 
+            if(s.tier === 'vip' && s.gallery && s.gallery.length > 0) { 
+                // GALERIA AUTO-PLAY PARA VIP
+                cover.innerHTML = `<div id="vip-gallery" class="flex h-full w-full overflow-x-auto gallery-snap no-scrollbar scroll-smooth">${s.gallery.map(url => `<div class="w-full h-full flex-shrink-0 relative"><img src="${url}" class="w-full h-full object-cover"></div>`).join('')}</div>`; 
+                const g = document.getElementById('vip-gallery');
+                galleryInterval = setInterval(() => {
+                    if(!g) return clearInterval(galleryInterval);
+                    if(g.scrollLeft + g.clientWidth >= g.scrollWidth - 10) g.scrollTo({left:0, behavior:'smooth'});
+                    else g.scrollBy({left: g.clientWidth, behavior:'smooth'});
+                }, 3000);
+            } 
             else { const c = categories.find(cat => cat.name === s.category) || {color: 'bg-slate-100 text-slate-500', icon: 'ph-star'}; cover.innerHTML = `<div class="w-full h-full ${c.color.split(' ')[0]} flex items-center justify-center"><i class="ph-fill ${c.icon} text-7xl opacity-20"></i></div>`; }
 
             document.getElementById('detail-name').innerHTML = s.name + (s.tier==='vip'?' <i class="ph-fill ph-crown text-amber-500 text-xl"></i>':'');
             document.getElementById('detail-category').textContent = s.category; document.getElementById('detail-rating').textContent = s.rating ? s.rating.toFixed(1) : '0.0'; document.getElementById('detail-desc').textContent = s.description;
             document.getElementById('detail-address-container').style.display = s.address ? 'flex' : 'none'; document.getElementById('detail-address').textContent = s.address || '';
             document.getElementById('btn-whatsapp').onclick = () => window.open(`https://wa.me/${s.whatsapp}?text=Olá! Vi o ${s.name} no PREÁpp.`, '_blank');
+            
+            // INTEGRAÇÃO BOTÃO MAPS PARA VIP
+            const btnMaps = document.getElementById('btn-maps'); 
+            btnMaps.style.display = (s.tier==='vip' && s.address) ? 'flex' : 'none'; 
+            btnMaps.onclick = () => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.address + ', Preá, Ceará')}`, '_blank');
+            
             const btnInsta = document.getElementById('btn-instagram'); btnInsta.style.display = (s.tier==='vip' && s.instagram) ? 'flex' : 'none'; btnInsta.onclick = () => window.open(`https://instagram.com/${s.instagram}`, '_blank');
-            const btnShare = document.getElementById('btn-share'); btnShare.style.display = (s.tier === 'vip') ? 'flex' : 'none'; btnShare.onclick = () => shareApp();
+            
+            // COMPARTILHAMENTO EXCLUSIVO PARA VIP
+            const btnShare = document.getElementById('btn-share'); btnShare.style.display = (s.tier === 'vip') ? 'flex' : 'none'; 
+            btnShare.onclick = () => {
+                const shareText = `Confira ${s.name} no PREÁpp!\nCategoria: ${s.category}\nContato: wa.me/${s.whatsapp}`;
+                if (navigator.share) navigator.share({ title: s.name, text: shareText, url: window.location.href });
+                else { navigator.clipboard.writeText(shareText + ' ' + window.location.href); showToast("Link copiado!"); }
+            };
             
             document.getElementById('reviews-list').innerHTML = reviews.filter(r => r.service_id === id).map(r => `<div class="bg-white border border-slate-100 p-4 rounded-xl shadow-sm"><div class="flex justify-between items-center mb-2"><span class="font-bold text-sm">${r.name}</span><span class="text-amber-500 text-xs">${'⭐'.repeat(r.rating)}</span></div><p class="text-slate-600 text-sm">${r.text}</p></div>`).join('') || `<p class="text-sm text-center py-4 bg-slate-50 text-slate-400 rounded-lg">Sem avaliações ainda.</p>`;
             navigate('profile');
         }
 
         function toggleGalleryUpload() { const isVip = document.querySelector('input[name="planType"][value="vip"]').checked; const s = document.getElementById('upload-gallery-section'); isVip ? (s.classList.remove('hidden'), s.classList.add('flex')) : (s.classList.add('hidden'), s.classList.remove('flex')); }
-        async function submitNewService(e) { e.preventDefault(); const tier = document.querySelector('input[name="planType"]:checked').value; let gal = []; if(tier === 'vip') { const files = document.getElementById('add-gallery-files').files; for(let i=0; i<Math.min(files.length, 5); i++) { gal.push(await toBase64(files[i])); } } const ns = { name: document.getElementById('add-name').value, category: document.getElementById('add-category').value, whatsapp: document.getElementById('add-whatsapp').value.replace(/\D/g, ''), address: document.getElementById('add-address').value, description: document.getElementById('add-desc').value, rating: 0, reviews_count: 0, tier, instagram: tier === 'vip' ? document.getElementById('add-instagram').value.replace('@','') : '', gallery: gal }; if(tier === 'vip') { pendingServiceData = ns; document.getElementById('modal-payment').classList.replace('hidden', 'flex'); } else { saveNewService(ns); } }
+        
+        async function submitNewService(e) { 
+            e.preventDefault(); 
+            
+            // VALIDAÇÃO +55 WHATSAPP CLIENTE
+            const phoneVal = document.getElementById('add-whatsapp').value.replace(/\D/g, '');
+            if(phoneVal.length < 10) return showToast("Digite um WhatsApp válido com DDD (ex: 88 99999-9999)!");
+            const finalWhatsapp = '55' + phoneVal;
+            
+            const tier = document.querySelector('input[name="planType"]:checked').value; 
+            let gal = []; 
+            if(tier === 'vip') { const files = document.getElementById('add-gallery-files').files; for(let i=0; i<Math.min(files.length, 5); i++) { gal.push(await toBase64(files[i])); } } 
+            
+            const ns = { name: document.getElementById('add-name').value, category: document.getElementById('add-category').value, whatsapp: finalWhatsapp, address: document.getElementById('add-address').value, description: document.getElementById('add-desc').value, rating: 0, reviews_count: 0, tier, instagram: tier === 'vip' ? document.getElementById('add-instagram').value.replace('@','') : '', gallery: gal }; 
+            
+            if(tier === 'vip') { pendingServiceData = ns; document.getElementById('modal-payment').classList.replace('hidden', 'flex'); } else { saveNewService(ns); } 
+        }
+        
         function cancelPaymentSimulation() { document.getElementById('modal-payment').classList.replace('flex', 'hidden'); pendingServiceData = null; }
         function confirmPaymentSimulation() { if(!pendingServiceData) return; document.getElementById('modal-payment').classList.replace('flex', 'hidden'); saveNewService(pendingServiceData); pendingServiceData = null; }
         
@@ -459,11 +534,18 @@
         function toggleAdminGallery() { const isVip = document.querySelector('input[name="adminPlanType"]:checked').value === 'vip'; const s = document.getElementById('admin-upload-section'); isVip ? (s.classList.remove('hidden'), s.classList.add('flex')) : (s.classList.add('hidden'), s.classList.remove('flex')); }
 
         async function adminSubmitNewService() {
-            const name = document.getElementById('admin-add-name').value, category = document.getElementById('admin-add-category').value, whatsapp = document.getElementById('admin-add-whatsapp').value.replace(/\D/g, ''), address = document.getElementById('admin-add-address').value, description = document.getElementById('admin-add-desc').value;
-            if(!name || !category || !whatsapp || !description) return showToast("Preencha Nome, Categoria, WhatsApp e Descrição!");
+            const name = document.getElementById('admin-add-name').value, category = document.getElementById('admin-add-category').value, address = document.getElementById('admin-add-address').value, description = document.getElementById('admin-add-desc').value;
+            
+            // VALIDAÇÃO +55 WHATSAPP GESTOR
+            const phoneVal = document.getElementById('admin-add-whatsapp').value.replace(/\D/g, '');
+            if(phoneVal.length < 10) return showToast("Digite um WhatsApp válido com DDD (ex: 88 99999-9999)!");
+            const finalWhatsapp = '55' + phoneVal;
+
+            if(!name || !category || !description) return showToast("Preencha Nome, Categoria e Descrição!");
             const tier = document.querySelector('input[name="adminPlanType"]:checked').value;
             let gal = []; if(tier === 'vip') { const files = document.getElementById('admin-add-gallery').files; for(let i=0; i<Math.min(files.length, 5); i++) gal.push(await toBase64(files[i])); }
-            const ns = { name, category, whatsapp, address, description, rating: 0, reviews_count: 0, tier, instagram: tier === 'vip' ? document.getElementById('admin-add-instagram').value.replace('@','') : '', gallery: gal };
+            
+            const ns = { name, category, whatsapp: finalWhatsapp, address, description, rating: 0, reviews_count: 0, tier, instagram: tier === 'vip' ? document.getElementById('admin-add-instagram').value.replace('@','') : '', gallery: gal };
             
             if(isOnline) { const { data } = await clientSupabase.from('services').insert([ns]).select(); if(data) ns.id = data[0].id; } else { ns.id = Date.now(); }
             services.unshift(ns); localStorage.setItem('bkp_srv', JSON.stringify(services));
@@ -495,7 +577,9 @@
         async function adminDeleteService(id) { if(isOnline) await clientSupabase.from('services').delete().eq('id', id); services = services.filter(x => x.id !== id); renderAdmin(); showToast("Excluído."); }
 
         window.onload = function() {
-            document.getElementById('add-whatsapp').addEventListener('input', function (e) { let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/); e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : ''); });
+            const maskPhone = function (e) { let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/); e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : ''); };
+            document.getElementById('add-whatsapp').addEventListener('input', maskPhone);
+            document.getElementById('admin-add-whatsapp').addEventListener('input', maskPhone);
             fetchAllData();
         };
 
