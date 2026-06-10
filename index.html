@@ -6,9 +6,10 @@
     <title>PREÁpp - Catálogo Virtual</title>
     
     <link rel="icon" type="image/png" href="icone.png">
-    <meta name="description" content="De encanador a passeios. De imóveis a academia. Tudo o que você precisa no Preá a um ckick.">
+    
+    <meta name="description" content="Prestadores de serviço, alimentação, imóveis, academias, transporte... Tudo o que você precisa no Preá a um click.">
     <meta property="og:title" content="PREÁpp - Catálogo Virtual">
-    <meta property="og:description" content="Encontre o que procura no Preá.">
+    <meta property="og:description" content="Prestadores de serviço, alimentação, imóveis, academias, transporte... Tudo o que você precisa no Preá a um click.">
     <meta property="og:image" content="https://preapp-ten.vercel.app/logo.png">
     <meta property="og:url" content="https://preapp-ten.vercel.app/">
     
@@ -272,9 +273,7 @@
         const { createClient } = supabase;
         const supabaseUrl = 'https://kbldhejhvlxylusyboyc.supabase.co';
         
-        // ==========================================
-        // ATENÇÃO: COLE SUA CHAVE LONGA (LEGACY) ABAIXO:
-        // ==========================================
+        // COLE SUA CHAVE LONGA (LEGACY) ABAIXO:
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtibGRoZWpodmx4eWx1c3lib3ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjk0NTEsImV4cCI6MjA5NjYwNTQ1MX0.WEWNNEdcWqU7cKcVEZ3bApUD7M0Cf5Q1y_1zgZW2DNg'; 
         
         let clientSupabase = null;
@@ -369,7 +368,18 @@
         function navigate(viewId) { document.querySelectorAll('main > div').forEach(el => el.classList.add('hidden')); const v = document.getElementById(`view-${viewId}`); if(v) { v.classList.remove('hidden'); v.classList.add('block'); } currentView = viewId; window.scrollTo(0,0); if(viewId === 'home') { renderHome(); startBannerRotation(); } else { stopBannerRotation(); } }
         function showInstallModal() { document.getElementById('modal-install').classList.replace('hidden', 'flex'); }
         function hideInstallModal() { document.getElementById('modal-install').classList.replace('flex', 'hidden'); }
-        function shareApp() { navigator.share ? navigator.share({ title: 'PREÁpp', url: window.location.href }) : (navigator.clipboard.writeText(window.location.href), showToast("Copiado!")); }
+        
+        // 2ª ALTERAÇÃO AQUI: A função que dispara o compartilhamento no celular
+        function shareApp() { 
+            const shareText = 'Prestadores de serviço, alimentação, imóveis, academias, transporte... Tudo o que você precisa no Preá a um click.';
+            if (navigator.share) {
+                navigator.share({ title: 'PREÁpp', text: shareText, url: window.location.href });
+            } else {
+                navigator.clipboard.writeText(shareText + ' ' + window.location.href);
+                showToast("Link copiado!");
+            }
+        }
+        
         function removeAccents(str) { return str.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
 
         function renderHome(searchQuery = '', filterCat = null) {
@@ -434,14 +444,12 @@
             document.getElementById('form-review').reset(); openService(activeServiceId); showToast('Avaliação enviada!');
         }
 
-        // --- FUNÇÕES DO PAINEL GESTOR RESTAURADAS ---
         function loginAdmin() { if(document.getElementById('admin-pwd').value === '#Bb0991%2704@') { document.getElementById('admin-login').classList.add('hidden'); document.getElementById('admin-dashboard').classList.remove('hidden'); renderAdmin(); } else showToast("Senha incorreta!"); }
         
         function renderAdmin() {
             document.getElementById('admin-db-status').innerHTML = isOnline ? '<span class="text-green-400">● Conectado ao Supabase</span>' : '<span class="text-red-400">● MODO OFFLINE (Sem Nuvem)</span>';
             document.getElementById('admin-services-list').innerHTML = services.map(s => `<div class="bg-slate-700 p-3 rounded flex justify-between items-center border border-slate-600 mb-2"><div><div class="font-bold">${s.name} ${s.tier==='vip'?'👑':''}</div><div class="text-xs text-slate-400">${s.category}</div></div><button onclick="adminDeleteService(${s.id})" class="text-red-400 p-1"><i class="ph-fill ph-trash text-lg"></i></button></div>`).join('');
             
-            // Popula os Selects e Listas do Admin
             document.getElementById('admin-add-category').innerHTML = '<option value="" disabled selected>Selecione a Categoria...</option>' + categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
             document.getElementById('admin-banner-service').innerHTML = '<option disabled selected>Vincular a qual empresa?</option>' + services.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
             document.getElementById('admin-banner-list').innerHTML = banners.map(b => `<div class="flex justify-between items-center bg-slate-700 p-2 rounded mb-1 text-xs border border-slate-600">ID ${b.service_id} <button onclick="adminDeleteBanner(${b.id})" class="text-red-400">Excluir</button></div>`).join('');
