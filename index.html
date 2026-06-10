@@ -305,7 +305,6 @@
         try { clientSupabase = createClient(supabaseUrl, supabaseKey); } 
         catch (e) { console.error("Erro biblioteca Supabase:", e); }
 
-        // VARIÁVEL NOVA: Motor de auto-play da galeria VIP
         let currentView = 'home', activeServiceId = null, bannerInterval = null, galleryInterval = null, pendingServiceData = null;
         let categories = [], services = [], reviews = [], banners = [];
 
@@ -376,6 +375,13 @@
         function finalizeRender() {
             document.getElementById('add-category').innerHTML = '<option disabled selected>Selecione...</option>' + categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
             renderHome(); startBannerRotation();
+
+            // SISTEMA DE LINK DIRETO (DEEP LINK)
+            const urlParams = new URLSearchParams(window.location.search);
+            const serviceId = urlParams.get('id');
+            if (serviceId) {
+                setTimeout(() => openService(parseInt(serviceId)), 200); 
+            }
         }
 
         async function seedDatabase() {
@@ -391,15 +397,18 @@
         function showToast(msg) { const c = document.getElementById('toast-container'); const t = document.createElement('div'); t.className = 'bg-slate-800 text-white px-4 py-3 rounded-xl shadow-lg text-sm font-medium animate-[toastSlide_0.3s_ease-out]'; t.innerHTML = msg; c.appendChild(t); setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(), 300); }, 3000); }
         
         function navigate(viewId) { 
-            clearInterval(galleryInterval); // Para a galeria automática se sair do perfil
+            clearInterval(galleryInterval); // Para a galeria ao sair do perfil
             document.querySelectorAll('main > div').forEach(el => el.classList.add('hidden')); 
             const v = document.getElementById(`view-${viewId}`); 
             if(v) { v.classList.remove('hidden'); v.classList.add('block'); } 
             currentView = viewId; 
             window.scrollTo(0,0); 
-            if(viewId === 'home') { renderHome(); startBannerRotation(); } else { stopBannerRotation(); } 
+            if(viewId === 'home') { 
+                window.history.replaceState({}, document.title, window.location.pathname); // Limpa o ?id= da URL
+                renderHome(); startBannerRotation(); 
+            } else { stopBannerRotation(); } 
         }
-        
+
         function showInstallModal() { document.getElementById('modal-install').classList.replace('hidden', 'flex'); }
         function hideInstallModal() { document.getElementById('modal-install').classList.replace('flex', 'hidden'); }
         
@@ -438,39 +447,47 @@
         function openService(id) {
             const s = services.find(x => x.id === id); if(!s) return; activeServiceId = id;
             
-            clearInterval(galleryInterval); // Limpa carrossel anterior
-            
+            clearInterval(galleryInterval); 
+
             const cover = document.getElementById('profile-gallery-container');
             if(s.tier === 'vip' && s.gallery && s.gallery.length > 0) { 
-                // GALERIA AUTO-PLAY PARA VIP
                 cover.innerHTML = `<div id="vip-gallery" class="flex h-full w-full overflow-x-auto gallery-snap no-scrollbar scroll-smooth">${s.gallery.map(url => `<div class="w-full h-full flex-shrink-0 relative"><img src="${url}" class="w-full h-full object-cover"></div>`).join('')}</div>`; 
-                const g = document.getElementById('vip-gallery');
-                galleryInterval = setInterval(() => {
-                    if(!g) return clearInterval(galleryInterval);
-                    if(g.scrollLeft + g.clientWidth >= g.scrollWidth - 10) g.scrollTo({left:0, behavior:'smooth'});
-                    else g.scrollBy({left: g.clientWidth, behavior:'smooth'});
-                }, 3000);
+                
+                // MOTOR DA GALERIA CORRIGIDO (COM ATRASO PARA RENDERIZAÇÃO)
+                setTimeout(() => {
+                    const g = document.getElementById('vip-gallery');
+                    if(g) {
+                        galleryInterval = setInterval(() => {
+                            if(!document.getElementById('vip-gallery')) return clearInterval(galleryInterval);
+                            if (g.scrollWidth > g.clientWidth) {
+                                if(g.scrollLeft + g.clientWidth >= g.scrollWidth - 10) g.scrollTo({left:0, behavior:'smooth'});
+                                else g.scrollBy({left: g.clientWidth, behavior:'smooth'});
+                            }
+                        }, 3000);
+                    }
+                }, 100);
             } 
             else { const c = categories.find(cat => cat.name === s.category) || {color: 'bg-slate-100 text-slate-500', icon: 'ph-star'}; cover.innerHTML = `<div class="w-full h-full ${c.color.split(' ')[0]} flex items-center justify-center"><i class="ph-fill ${c.icon} text-7xl opacity-20"></i></div>`; }
 
             document.getElementById('detail-name').innerHTML = s.name + (s.tier==='vip'?' <i class="ph-fill ph-crown text-amber-500 text-xl"></i>':'');
             document.getElementById('detail-category').textContent = s.category; document.getElementById('detail-rating').textContent = s.rating ? s.rating.toFixed(1) : '0.0'; document.getElementById('detail-desc').textContent = s.description;
             document.getElementById('detail-address-container').style.display = s.address ? 'flex' : 'none'; document.getElementById('detail-address').textContent = s.address || '';
-            document.getElementById('btn-whatsapp').onclick = () => window.open(`https://wa.me/${s.whatsapp}?text=Olá! Vi o ${s.name} no PREÁpp.`, '_blank');
             
-            // INTEGRAÇÃO BOTÃO MAPS PARA VIP
+            // NOVO TEXTO INTELIGENTE DO WHATSAPP AQUI
+            document.getElementById('btn-whatsapp').onclick = () => window.open(`https://wa.me/${s.whatsapp}?text=${encodeURIComponent(`Olá, ${s.name}! Cheguei aqui pelo PREÁpp e preciso de atendimento.`)}`, '_blank');
+            
             const btnMaps = document.getElementById('btn-maps'); 
             btnMaps.style.display = (s.tier==='vip' && s.address) ? 'flex' : 'none'; 
-            btnMaps.onclick = () => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.address + ', Preá, Ceará')}`, '_blank');
+            btnMaps.onclick = () => window.open(`https://maps.google.com/?q=${encodeURIComponent(s.address + ', Preá, Ceará')}`, '_blank');
             
             const btnInsta = document.getElementById('btn-instagram'); btnInsta.style.display = (s.tier==='vip' && s.instagram) ? 'flex' : 'none'; btnInsta.onclick = () => window.open(`https://instagram.com/${s.instagram}`, '_blank');
             
-            // COMPARTILHAMENTO EXCLUSIVO PARA VIP
             const btnShare = document.getElementById('btn-share'); btnShare.style.display = (s.tier === 'vip') ? 'flex' : 'none'; 
             btnShare.onclick = () => {
-                const shareText = `Confira ${s.name} no PREÁpp!\nCategoria: ${s.category}\nContato: wa.me/${s.whatsapp}`;
-                if (navigator.share) navigator.share({ title: s.name, text: shareText, url: window.location.href });
-                else { navigator.clipboard.writeText(shareText + ' ' + window.location.href); showToast("Link copiado!"); }
+                const profileUrl = window.location.origin + window.location.pathname + '?id=' + s.id;
+                const shareText = `Confira *${s.name}* no PREÁpp!\n\n📝 ${s.description}\n\n🏷️ Categoria: ${s.category}\n📞 WhatsApp: wa.me/${s.whatsapp}\n\n👉 Acesse o perfil completo:`;
+                if (navigator.share) navigator.share({ title: s.name, text: shareText, url: profileUrl });
+                else { navigator.clipboard.writeText(shareText + '\n' + profileUrl); showToast("Link do perfil copiado!"); }
             };
             
             document.getElementById('reviews-list').innerHTML = reviews.filter(r => r.service_id === id).map(r => `<div class="bg-white border border-slate-100 p-4 rounded-xl shadow-sm"><div class="flex justify-between items-center mb-2"><span class="font-bold text-sm">${r.name}</span><span class="text-amber-500 text-xs">${'⭐'.repeat(r.rating)}</span></div><p class="text-slate-600 text-sm">${r.text}</p></div>`).join('') || `<p class="text-sm text-center py-4 bg-slate-50 text-slate-400 rounded-lg">Sem avaliações ainda.</p>`;
@@ -482,14 +499,12 @@
         async function submitNewService(e) { 
             e.preventDefault(); 
             
-            // VALIDAÇÃO +55 WHATSAPP CLIENTE
             const phoneVal = document.getElementById('add-whatsapp').value.replace(/\D/g, '');
             if(phoneVal.length < 10) return showToast("Digite um WhatsApp válido com DDD (ex: 88 99999-9999)!");
             const finalWhatsapp = '55' + phoneVal;
-            
+
             const tier = document.querySelector('input[name="planType"]:checked').value; 
-            let gal = []; 
-            if(tier === 'vip') { const files = document.getElementById('add-gallery-files').files; for(let i=0; i<Math.min(files.length, 5); i++) { gal.push(await toBase64(files[i])); } } 
+            let gal = []; if(tier === 'vip') { const files = document.getElementById('add-gallery-files').files; for(let i=0; i<Math.min(files.length, 5); i++) { gal.push(await toBase64(files[i])); } } 
             
             const ns = { name: document.getElementById('add-name').value, category: document.getElementById('add-category').value, whatsapp: finalWhatsapp, address: document.getElementById('add-address').value, description: document.getElementById('add-desc').value, rating: 0, reviews_count: 0, tier, instagram: tier === 'vip' ? document.getElementById('add-instagram').value.replace('@','') : '', gallery: gal }; 
             
@@ -536,7 +551,6 @@
         async function adminSubmitNewService() {
             const name = document.getElementById('admin-add-name').value, category = document.getElementById('admin-add-category').value, address = document.getElementById('admin-add-address').value, description = document.getElementById('admin-add-desc').value;
             
-            // VALIDAÇÃO +55 WHATSAPP GESTOR
             const phoneVal = document.getElementById('admin-add-whatsapp').value.replace(/\D/g, '');
             if(phoneVal.length < 10) return showToast("Digite um WhatsApp válido com DDD (ex: 88 99999-9999)!");
             const finalWhatsapp = '55' + phoneVal;
