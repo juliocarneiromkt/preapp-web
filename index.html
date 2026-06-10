@@ -70,7 +70,7 @@
     <main id="app-content" class="max-w-md mx-auto relative overflow-hidden min-h-[calc(100vh-64px)]">
         
         <div id="view-home" class="p-4 animate-fade-in block">
-            <div id="install-banner" class="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-5 flex justify-between items-center cursor-pointer shadow-sm" onclick="showInstallModal()">
+            <div id="install-banner" class="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 flex justify-between items-center cursor-pointer shadow-sm" onclick="showInstallModal()">
                 <div class="flex items-center gap-3">
                     <div class="bg-blue-100 text-blue-600 p-2.5 rounded-lg shadow-inner"><i class="ph-fill ph-download-simple text-xl"></i></div>
                     <div>
@@ -79,6 +79,17 @@
                     </div>
                 </div>
                 <i class="ph-bold ph-caret-right text-blue-500"></i>
+            </div>
+
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-5 flex justify-between items-center cursor-pointer shadow-sm" onclick="window.open('https://wa.me/5588920015396?text=' + encodeURIComponent('Olá, equipe do PREÁpp! Vim através do aplicativo e preciso de suporte ou atendimento.'), '_blank')">
+                <div class="flex items-center gap-3">
+                    <div class="bg-emerald-100 text-emerald-600 p-2.5 rounded-lg shadow-inner"><i class="ph-fill ph-chats text-xl"></i></div>
+                    <div>
+                        <h3 class="font-bold text-emerald-800 text-sm">Contatar a Equipe</h3>
+                        <p class="text-xs text-emerald-600">Suporte, anúncios, parcerias ou alterações</p>
+                    </div>
+                </div>
+                <i class="ph-bold ph-caret-right text-emerald-500"></i>
             </div>
 
             <div class="flex gap-2 mb-6">
@@ -294,9 +305,7 @@
     </main>
 
     <div id="modal-install" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex-col justify-end"><div class="bg-white rounded-t-3xl p-6 shadow-2xl animate-slide-up max-w-md mx-auto w-full"><div class="flex justify-between items-start mb-4"><h3 class="text-xl font-bold text-slate-800">Instalar App</h3><button onclick="hideInstallModal()"><i class="ph ph-x text-2xl"></i></button></div><button onclick="hideInstallModal()" class="w-full bg-slate-200 text-slate-800 font-bold py-3 rounded-xl mt-4">Entendi</button></div></div>
-    
     <div id="modal-payment" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex-col justify-end"><div class="bg-white rounded-t-3xl p-6 shadow-2xl animate-slide-up max-w-md mx-auto w-full"><h3 class="text-2xl font-bold text-center mb-6">Checkout VIP</h3><button onclick="confirmPaymentSimulation()" class="w-full bg-slate-800 text-white font-bold py-4 rounded-xl shadow-md mb-3">Simular Pagamento</button><button onclick="cancelPaymentSimulation()" class="w-full text-slate-500 font-bold py-3 rounded-xl">Cancelar</button></div></div>
-    
     <div id="toast-container" class="fixed bottom-4 left-1/2 -translate-x-1/2 w-max max-w-[90vw] z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <div id="modal-admin-edit" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex-col justify-center p-4">
@@ -336,8 +345,6 @@
     <script>
         const { createClient } = supabase;
         const supabaseUrl = 'https://kbldhejhvlxylusyboyc.supabase.co';
-        
-        // COLE SUA CHAVE LONGA (LEGACY) ABAIXO:
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtibGRoZWpodmx4eWx1c3lib3ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjk0NTEsImV4cCI6MjA5NjYwNTQ1MX0.WEWNNEdcWqU7cKcVEZ3bApUD7M0Cf5Q1y_1zgZW2DNg'; 
         
         let clientSupabase = null;
@@ -598,16 +605,13 @@
             document.getElementById('form-review').reset(); openService(activeServiceId); showToast('Avaliação enviada com sucesso!');
         }
 
-        // --- SISTEMA ADMINISTRATIVO ---
         function loginAdmin() { if(document.getElementById('admin-pwd').value === '#Bb0991%2704@') { document.getElementById('admin-login').classList.add('hidden'); document.getElementById('admin-dashboard').classList.remove('hidden'); renderAdmin(); } else showToast("Senha incorreta!"); }
         
         function renderAdmin() {
             document.getElementById('admin-db-status').innerHTML = isOnline ? '<span class="text-green-400">● Conectado ao Supabase</span>' : '<span class="text-red-400">● MODO OFFLINE (Sem Nuvem)</span>';
             
-            // LISTA DE EMPRESAS COM BOTÃO DE EDITAR
             document.getElementById('admin-services-list').innerHTML = services.map(s => `<div class="bg-slate-700 p-3 rounded flex justify-between items-center border border-slate-600 mb-2"><div><div class="font-bold">${s.name} ${s.tier==='vip'?'👑':''}</div><div class="text-xs text-slate-400">${s.category}</div></div><div class="flex gap-2"><button onclick="adminOpenEditService(${s.id})" class="text-blue-400 p-1 bg-slate-600 rounded hover:bg-slate-500"><i class="ph-fill ph-pencil-simple text-lg"></i></button><button onclick="adminDeleteService(${s.id})" class="text-red-400 p-1 bg-slate-600 rounded hover:bg-slate-500"><i class="ph-fill ph-trash text-lg"></i></button></div></div>`).join('');
             
-            // MODERAÇÃO DE AVALIAÇÕES (NOVO)
             document.getElementById('admin-reviews-list').innerHTML = reviews.map(r => {
                 const sName = services.find(x => x.id === r.service_id)?.name || 'Empresa Deletada';
                 return `<div class="bg-slate-700 p-3 rounded border border-slate-600 mb-2"><div class="flex justify-between items-start mb-1"><div><span class="font-bold text-white text-sm">${r.name}</span> <span class="text-xs text-amber-400">${'⭐'.repeat(r.rating)}</span></div><button onclick="adminDeleteReview(${r.id})" class="text-red-400 p-1 bg-slate-600 rounded hover:bg-slate-500"><i class="ph-fill ph-trash text-lg"></i></button></div><div class="text-[10px] text-slate-400 mb-1">Negócio: ${sName}</div><div class="text-xs text-slate-300 italic">"${r.text}"</div></div>`;
@@ -618,12 +622,10 @@
             document.getElementById('admin-banner-list').innerHTML = banners.map(b => `<div class="flex justify-between items-center bg-slate-700 p-2 rounded mb-1 text-xs border border-slate-600">ID ${b.service_id} <button onclick="adminDeleteBanner(${b.id})" class="text-red-400">Excluir</button></div>`).join('');
             document.getElementById('admin-category-list').innerHTML = categories.map(c => `<span class="bg-slate-700 text-xs px-2 py-1 rounded text-slate-200 border border-slate-600">${c.name} <button onclick="adminDeleteCategory(${c.id})" class="ml-2 text-red-400 font-bold">x</button></span>`).join('');
             
-            // Popula também as categorias do modal de edição
             const editCatSelect = document.getElementById('edit-srv-category');
             if (editCatSelect) editCatSelect.innerHTML = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
         }
 
-        // --- SISTEMA DE EDIÇÃO DE EMPRESAS ---
         function adminOpenEditService(id) {
             const s = services.find(x => x.id === id);
             if(!s) return;
@@ -687,10 +689,9 @@
             closeAdminEditModal();
             renderAdmin();
             if(currentView === 'home') renderHome();
-            showToast("Empresa atualizada com sucesso!");
+            showToast("Empresa updated com sucesso!");
         }
 
-        // --- SISTEMA DE EXCLUSÃO DE AVALIAÇÕES OFENSIVAS ---
         async function adminDeleteReview(id) {
             const rev = reviews.find(r => r.id === id);
             if(!rev) return;
@@ -698,7 +699,6 @@
             if(isOnline) await clientSupabase.from('reviews').delete().eq('id', id);
             reviews = reviews.filter(x => x.id !== id);
             
-            // Recalcula a nota da empresa após apagar o comentário!
             const s = services.find(x => x.id === rev.service_id);
             if (s) {
                 const sRevs = reviews.filter(r => r.service_id === s.id);
